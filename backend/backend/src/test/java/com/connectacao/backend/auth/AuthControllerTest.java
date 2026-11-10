@@ -1,6 +1,5 @@
 package com.connectacao.backend.auth;
 
-import com.connectacao.backend.dto.usuario.UsuarioResponse;
 import com.connectacao.backend.exception.CredenciaisInvalidasException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

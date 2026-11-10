@@ -1,12 +1,12 @@
 package com.connectacao.backend.auth;
 
-import com.connectacao.backend.dto.usuario.UsuarioResponse;
 import com.connectacao.backend.entidade.Usuario;
 import com.connectacao.backend.exception.CredenciaisInvalidasException;
 import com.connectacao.backend.repository.UsuarioRepository;
 import com.connectacao.backend.security.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,9 +15,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.extension.ExtendWith.*;
 
-@org.junit.jupiter.api.extension.ExtendWith(MockitoExtension.class)
+@ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
     @Mock private UsuarioRepository usuarioRepository;
     @Mock private PasswordEncoder passwordEncoder;

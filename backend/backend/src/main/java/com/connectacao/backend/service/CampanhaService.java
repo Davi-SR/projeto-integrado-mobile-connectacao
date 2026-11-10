@@ -3,7 +3,6 @@ package com.connectacao.backend.service;
 import com.connectacao.backend.dto.campanha.CampanhaDestaqueResponse;
 import com.connectacao.backend.entidade.Campanha;
 import com.connectacao.backend.entidade.StatusCampanha;
-import com.connectacao.backend.entidade.StatusDoacao;
 import com.connectacao.backend.repository.CampanhaRepository;
 import com.connectacao.backend.repository.DoacaoRepository;
 import com.connectacao.backend.repository.OngRepository;
