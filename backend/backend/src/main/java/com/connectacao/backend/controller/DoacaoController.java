@@ -26,6 +26,16 @@ public class DoacaoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(doacaoService.realizarDoacao(request));
     }
 
+    @PostMapping("/doacoes/{id}/confirmar")
+    public ResponseEntity<Doacao> confirmarDoacao(@PathVariable Long id) {
+        return ResponseEntity.ok(doacaoService.confirmarDoacao(id));
+    }
+
+    @PostMapping("/doacoes/{id}/cancelar")
+    public ResponseEntity<Doacao> cancelarDoacao(@PathVariable Long id) {
+        return ResponseEntity.ok(doacaoService.cancelarDoacao(id));
+    }
+
     @GetMapping("/usuarios/{id}/doacoes")
     public ResponseEntity<List<Doacao>> listarPorUsuario(@PathVariable Long id) {
         return ResponseEntity.ok(doacaoService.listarPorUsuario(id));

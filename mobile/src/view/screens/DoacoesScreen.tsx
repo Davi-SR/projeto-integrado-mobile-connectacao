@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   SafeAreaView,
@@ -13,18 +14,21 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { RootStackParamList } from '../../navigation/types';
-import { authTheme as t } from '../../theme/authTheme';
 import { useDoacoesViewModel } from '../../viewmodel/useDoacoesViewModel';
 import { DoacoesHeader } from '../components/DoacoesHeader';
 import { DoacoesHeroCard } from '../components/DoacoesHeroCard';
 import { DoacoesChartCard } from '../components/DoacoesChartCard';
 import { DoacoesRecentesSection } from '../components/DoacoesRecentesSection';
 import { AppIcon } from '../components/HomeIcons';
+import { useTheme } from '../../theme/ThemeContext';
+import { baixarRelatorioDoacoesPdf } from '../../services/relatorioPdfService';
 
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
 
 export function DoacoesScreen() {
   const navigation = useNavigation<Navigation>();
+  const { isDark, theme } = useTheme();
+
   const {
     user,
     primeiroNome,
@@ -56,6 +60,7 @@ export function DoacoesScreen() {
   } = useDoacoesViewModel();
 
   const [refreshing, setRefreshing] = React.useState(false);
+  const [isBaixandoRelatorio, setIsBaixandoRelatorio] = React.useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -66,21 +71,54 @@ export function DoacoesScreen() {
     }
   };
 
+  const handleBaixarRelatorio = async () => {
+    if (isBaixandoRelatorio) return;
+    setIsBaixandoRelatorio(true);
+    try {
+      const res = await baixarRelatorioDoacoesPdf({
+        user,
+        modoFiltro,
+        anoSelecionado,
+        mesSelecionado,
+        kpis,
+        valorTotalGeral: valorTotalDoado,
+        ongsApoiadasCount,
+        doacoes: doacoesRecentes,
+      });
+
+      if (!res.sucesso && res.erro) {
+        Alert.alert('Aviso', res.erro);
+      }
+    } catch (err: any) {
+      console.error('Erro ao baixar relatório:', err);
+      Alert.alert('Erro', 'Não foi possível gerar o relatório de doações.');
+    } finally {
+      setIsBaixandoRelatorio(false);
+    }
+  };
+
+  const pageBg = isDark ? '#111418' : theme.colors.page;
+  const spinnerColor = isDark ? '#05BCAA' : theme.colors.tealDark;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: pageBg }]}>
       {/* 1. Cabeçalho Oficial do Usuário */}
       <DoacoesHeader user={user} primeiroNome={primeiroNome} />
 
       {/* 2. Conteúdo Scrollável com Pull to Refresh */}
       {isLoading && !refreshing ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={t.colors.tealDark} />
-          <Text style={styles.loadingText}>Carregando suas doações...</Text>
+          <ActivityIndicator size="large" color={spinnerColor} />
+          <Text style={[styles.loadingText, { color: isDark ? '#9CA3AF' : theme.colors.muted }]}>
+            Carregando suas doações...
+          </Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
-          <AppIcon name="error_outline" size={36} color={t.colors.error} />
-          <Text style={styles.errorText}>{error}</Text>
+          <AppIcon name="error_outline" size={36} color={theme.colors.error} />
+          <Text style={[styles.errorText, { color: isDark ? '#FFFFFF' : theme.colors.ink }]}>
+            {error}
+          </Text>
           <Pressable
             style={({ pressed }) => [styles.retryButton, pressed && styles.pressed]}
             onPress={() => void recarregar()}
@@ -98,8 +136,8 @@ export function DoacoesScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={() => void handleRefresh()}
-              colors={[t.colors.tealDark, t.colors.brand]}
-              tintColor={t.colors.tealDark}
+              colors={[spinnerColor]}
+              tintColor={spinnerColor}
             />
           }
         >
@@ -138,6 +176,11 @@ export function DoacoesScreen() {
             doacoes={doacoesRecentes}
             onVerHistorico={() => navigation.navigate('Home')}
             onExplorarCampanhas={() => navigation.navigate('Home')}
+            modoFiltro={modoFiltro}
+            anoSelecionado={anoSelecionado}
+            mesSelecionado={mesSelecionado}
+            onBaixarRelatorio={handleBaixarRelatorio}
+            isBaixandoRelatorio={isBaixandoRelatorio}
           />
         </ScrollView>
       )}
@@ -148,25 +191,23 @@ export function DoacoesScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: t.colors.page,
   },
   scrollView: {
     flex: 1,
   },
   content: {
-    padding: t.spacing.lg,
+    padding: 24,
     paddingBottom: 40,
-    gap: t.spacing.lg,
+    gap: 24,
   },
   loadingContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    padding: t.spacing.xl,
+    padding: 32,
   },
   loadingText: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '600',
@@ -176,10 +217,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    padding: t.spacing.xl,
+    padding: 32,
   },
   errorText: {
-    color: t.colors.ink,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     fontWeight: '600',
@@ -187,10 +227,10 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     marginTop: 8,
-    backgroundColor: t.colors.tealDark,
+    backgroundColor: '#05BCAA',
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: t.radius.button,
+    borderRadius: 14,
   },
   retryButtonText: {
     color: '#FFFFFF',

@@ -19,8 +19,11 @@ import { authTheme as t } from '../../theme/authTheme';
 import { HomeHeader } from '../components/HomeHeader';
 import { AppIcon } from '../components/HomeIcons';
 import { useConfiguracoesViewModel } from '../../viewmodel/useConfiguracoesViewModel';
+import { useTheme } from '../../theme/ThemeContext';
 
 export function ConfiguracoesScreen() {
+  const { isDark, theme } = useTheme();
+
   const {
     user,
     notificacoesCampanhas,
@@ -66,8 +69,19 @@ export function ConfiguracoesScreen() {
   const initial = user?.nome?.trim().charAt(0).toUpperCase() || 'U';
   const initialEdit = nomeEdit?.trim().charAt(0).toUpperCase() || initial;
 
+  const pageBg = isDark ? '#111418' : '#F8F9FA';
+  const cardBg = isDark ? '#1A1D24' : '#FFFFFF';
+  const cardBorder = isDark ? '#242A35' : 'transparent';
+  const dividerBg = isDark ? '#242A35' : '#F3F4F6';
+  const titleColor = isDark ? '#FFFFFF' : '#0A2540';
+  const labelColor = isDark ? '#FFFFFF' : '#1F2937';
+  const subtitleColor = isDark ? '#9CA3AF' : '#6B7280';
+  const inputBg = isDark ? '#262B35' : '#F8FAFC';
+  const inputBorder = isDark ? '#2E3543' : '#E2E8F0';
+  const primaryTeal = isDark ? '#05BCAA' : '#006A60';
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: pageBg }]}>
       <HomeHeader />
 
       <ScrollView
@@ -76,11 +90,11 @@ export function ConfiguracoesScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Título da Tela */}
-        <Text style={styles.pageTitle}>Configurações</Text>
+        <Text style={[styles.pageTitle, { color: titleColor }]}>Configurações</Text>
 
         {/* Card de Identificação do Usuário */}
-        <View style={styles.userCard}>
-          <View style={styles.avatarWrapper}>
+        <View style={[styles.userCard, { backgroundColor: cardBg, borderColor: cardBorder, borderWidth: isDark ? 1 : 0 }]}>
+          <View style={[styles.avatarWrapper, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6', borderColor: '#05BCAA' }]}>
             {user?.fotoUrl && !avatarError ? (
               <Image
                 source={{ uri: user.fotoUrl }}
@@ -89,17 +103,17 @@ export function ConfiguracoesScreen() {
                 resizeMode="cover"
               />
             ) : (
-              <View style={styles.avatarFallback}>
-                <Text style={styles.avatarInitial}>{initial}</Text>
+              <View style={[styles.avatarFallback, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6' }]}>
+                <Text style={[styles.avatarInitial, { color: primaryTeal }]}>{initial}</Text>
               </View>
             )}
           </View>
 
           <View style={styles.userInfo}>
-            <Text style={styles.userName} numberOfLines={1}>
+            <Text style={[styles.userName, { color: titleColor }]} numberOfLines={1}>
               {user?.nome || 'Marina Silva'}
             </Text>
-            <Text style={styles.userEmail} numberOfLines={1}>
+            <Text style={[styles.userEmail, { color: subtitleColor }]} numberOfLines={1}>
               {user?.email || 'marina.silva@email.com'}
             </Text>
           </View>
@@ -110,20 +124,20 @@ export function ConfiguracoesScreen() {
             onPress={abrirEditarPerfil}
             style={({ pressed }) => [styles.editIconButton, pressed && styles.cardPressed]}
           >
-            <AppIcon name="edit" size={22} color="#006A60" />
+            <AppIcon name="edit" size={22} color={primaryTeal} />
           </Pressable>
         </View>
 
         {/* Seção: PREFERÊNCIAS */}
-        <Text style={styles.sectionHeading}>PREFERÊNCIAS</Text>
-        <View style={styles.cardContainer}>
+        <Text style={[styles.sectionHeading, { color: subtitleColor }]}>PREFERÊNCIAS</Text>
+        <View style={[styles.cardContainer, { backgroundColor: cardBg, borderColor: cardBorder, borderWidth: isDark ? 1 : 0 }]}>
           {/* Notificações de Campanhas */}
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <View style={[styles.iconCircle, { backgroundColor: '#CCFBF1' }]}>
-                <AppIcon name="campaign" size={22} color="#006A60" />
+              <View style={[styles.iconCircle, { backgroundColor: isDark ? '#0D3331' : '#CCFBF1' }]}>
+                <AppIcon name="campaign" size={22} color={primaryTeal} />
               </View>
-              <Text style={styles.settingLabel}>
+              <Text style={[styles.settingLabel, { color: labelColor }]}>
                 Notificações de{'\n'}Campanhas
               </Text>
             </View>
@@ -131,36 +145,36 @@ export function ConfiguracoesScreen() {
             <Switch
               value={notificacoesCampanhas}
               onValueChange={toggleNotificacoes}
-              trackColor={{ false: '#E5E7EB', true: '#006A60' }}
+              trackColor={{ false: isDark ? '#2E3543' : '#E5E7EB', true: '#05BCAA' }}
               thumbColor="#FFFFFF"
-              ios_backgroundColor="#E5E7EB"
+              ios_backgroundColor={isDark ? '#2E3543' : '#E5E7EB'}
             />
           </View>
 
-          <View style={styles.rowDivider} />
+          <View style={[styles.rowDivider, { backgroundColor: dividerBg }]} />
 
           {/* Tema Escuro */}
           <View style={styles.settingRow}>
             <View style={styles.settingLeft}>
-              <View style={[styles.iconCircle, { backgroundColor: '#F3F4F6' }]}>
-                <AppIcon name="dark_mode" size={20} color="#374151" />
+              <View style={[styles.iconCircle, { backgroundColor: isDark ? '#262B35' : '#F3F4F6' }]}>
+                <AppIcon name="dark_mode" size={20} color={isDark ? '#0AAEEE' : '#374151'} />
               </View>
-              <Text style={styles.settingLabel}>Tema Escuro</Text>
+              <Text style={[styles.settingLabel, { color: labelColor }]}>Tema Escuro</Text>
             </View>
 
             <Switch
               value={temaEscuro}
               onValueChange={toggleTemaEscuro}
-              trackColor={{ false: '#E5E7EB', true: '#006A60' }}
+              trackColor={{ false: isDark ? '#2E3543' : '#E5E7EB', true: '#05BCAA' }}
               thumbColor="#FFFFFF"
-              ios_backgroundColor="#E5E7EB"
+              ios_backgroundColor={isDark ? '#2E3543' : '#E5E7EB'}
             />
           </View>
         </View>
 
         {/* Seção: INFORMAÇÕES */}
-        <Text style={styles.sectionHeading}>INFORMAÇÕES</Text>
-        <View style={styles.cardContainer}>
+        <Text style={[styles.sectionHeading, { color: subtitleColor }]}>INFORMAÇÕES</Text>
+        <View style={[styles.cardContainer, { backgroundColor: cardBg, borderColor: cardBorder, borderWidth: isDark ? 1 : 0 }]}>
           {/* Sobre o ConectAção */}
           <Pressable
             accessibilityRole="button"
@@ -169,13 +183,13 @@ export function ConfiguracoesScreen() {
             style={({ pressed }) => [styles.infoRow, pressed && styles.cardPressed]}
           >
             <View style={styles.infoLeft}>
-              <AppIcon name="info" size={22} color="#006A60" />
-              <Text style={styles.infoLabel}>Sobre o ConectAção</Text>
+              <AppIcon name="info" size={22} color={primaryTeal} />
+              <Text style={[styles.infoLabel, { color: labelColor }]}>Sobre o ConectAção</Text>
             </View>
-            <AppIcon name="chevron_right" size={22} color="#9CA3AF" />
+            <AppIcon name="chevron_right" size={22} color={subtitleColor} />
           </Pressable>
 
-          <View style={styles.infoDivider} />
+          <View style={[styles.infoDivider, { backgroundColor: dividerBg }]} />
 
           {/* Termos de Uso e Privacidade */}
           <Pressable
@@ -185,13 +199,13 @@ export function ConfiguracoesScreen() {
             style={({ pressed }) => [styles.infoRow, pressed && styles.cardPressed]}
           >
             <View style={styles.infoLeft}>
-              <AppIcon name="policy" size={22} color="#006A60" />
-              <Text style={styles.infoLabel}>Termos de Uso e Privacidade</Text>
+              <AppIcon name="policy" size={22} color={primaryTeal} />
+              <Text style={[styles.infoLabel, { color: labelColor }]}>Termos de Uso e Privacidade</Text>
             </View>
-            <AppIcon name="chevron_right" size={22} color="#9CA3AF" />
+            <AppIcon name="chevron_right" size={22} color={subtitleColor} />
           </Pressable>
 
-          <View style={styles.infoDivider} />
+          <View style={[styles.infoDivider, { backgroundColor: dividerBg }]} />
 
           {/* Ajuda e Suporte */}
           <Pressable
@@ -201,10 +215,10 @@ export function ConfiguracoesScreen() {
             style={({ pressed }) => [styles.infoRow, pressed && styles.cardPressed]}
           >
             <View style={styles.infoLeft}>
-              <AppIcon name="help_outline" size={22} color="#006A60" />
-              <Text style={styles.infoLabel}>Ajuda e Suporte</Text>
+              <AppIcon name="help_outline" size={22} color={primaryTeal} />
+              <Text style={[styles.infoLabel, { color: labelColor }]}>Ajuda e Suporte</Text>
             </View>
-            <AppIcon name="chevron_right" size={22} color="#9CA3AF" />
+            <AppIcon name="chevron_right" size={22} color={subtitleColor} />
           </Pressable>
         </View>
 
@@ -213,7 +227,11 @@ export function ConfiguracoesScreen() {
           accessibilityRole="button"
           accessibilityLabel="Sair da Conta"
           onPress={abrirLogout}
-          style={({ pressed }) => [styles.logoutButton, pressed && styles.cardPressed]}
+          style={({ pressed }) => [
+            styles.logoutButton,
+            { backgroundColor: cardBg, borderColor: '#DC2626' },
+            pressed && styles.cardPressed,
+          ]}
         >
           <AppIcon name="logout" size={20} color="#DC2626" />
           <Text style={styles.logoutButtonText}>SAIR DA CONTA</Text>
@@ -229,27 +247,27 @@ export function ConfiguracoesScreen() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.75)' }]}
         >
           <Pressable style={styles.modalBackdrop} onPress={fecharEditarPerfil} />
-          <View style={styles.modalSheet}>
+          <View style={[styles.modalSheet, { backgroundColor: cardBg }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Editar Perfil</Text>
+              <Text style={[styles.modalTitle, { color: titleColor }]}>Editar Perfil</Text>
               <Pressable onPress={fecharEditarPerfil} style={styles.modalCloseBtn}>
-                <AppIcon name="close" size={22} color="#0A2540" />
+                <AppIcon name="close" size={22} color={isDark ? '#CBD5E1' : '#0A2540'} />
               </Pressable>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false}>
               {saveError && (
-                <View style={styles.errorBanner}>
+                <View style={[styles.errorBanner, isDark && { backgroundColor: '#2D1616' }]}>
                   <Text style={styles.errorBannerText}>{saveError}</Text>
                 </View>
               )}
 
               {/* Seletor de Foto da Galeria */}
               <View style={styles.photoPickerContainer}>
-                <View style={styles.modalAvatarWrapper}>
+                <View style={[styles.modalAvatarWrapper, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6', borderColor: primaryTeal }]}>
                   {fotoUrlEdit ? (
                     <Image
                       source={{ uri: fotoUrlEdit }}
@@ -257,8 +275,8 @@ export function ConfiguracoesScreen() {
                       resizeMode="cover"
                     />
                   ) : (
-                    <View style={styles.modalAvatarFallback}>
-                      <Text style={styles.modalAvatarInitial}>{initialEdit}</Text>
+                    <View style={[styles.modalAvatarFallback, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6' }]}>
+                      <Text style={[styles.modalAvatarInitial, { color: primaryTeal }]}>{initialEdit}</Text>
                     </View>
                   )}
                 </View>
@@ -267,12 +285,13 @@ export function ConfiguracoesScreen() {
                   <Pressable
                     style={({ pressed }) => [
                       styles.pickGalleryBtn,
+                      { backgroundColor: isDark ? '#0D3331' : '#E6F8F6', borderColor: isDark ? '#05BCAA' : '#BDEBE5' },
                       pressed && styles.cardPressed,
                     ]}
                     onPress={selecionarFotoDaGaleria}
                   >
-                    <AppIcon name="photo_library" size={18} color="#006A60" />
-                    <Text style={styles.pickGalleryBtnText}>Escolher da Galeria</Text>
+                    <AppIcon name="photo_library" size={18} color={primaryTeal} />
+                    <Text style={[styles.pickGalleryBtnText, { color: primaryTeal }]}>Escolher da Galeria</Text>
                   </Pressable>
 
                   {fotoUrlEdit ? (
@@ -286,39 +305,40 @@ export function ConfiguracoesScreen() {
                 </View>
               </View>
 
-              <Text style={styles.inputLabel}>Nome Completo</Text>
+              <Text style={[styles.inputLabel, { color: titleColor }]}>Nome Completo</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: inputBg, borderColor: inputBorder, color: titleColor }]}
                 value={nomeEdit}
                 onChangeText={setNomeEdit}
                 placeholder="Seu nome completo"
-                placeholderTextColor={t.colors.muted}
+                placeholderTextColor={subtitleColor}
               />
 
-              <Text style={styles.inputLabel}>E-mail</Text>
+              <Text style={[styles.inputLabel, { color: titleColor }]}>E-mail</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: inputBg, borderColor: inputBorder, color: titleColor }]}
                 value={emailEdit}
                 onChangeText={setEmailEdit}
                 placeholder="seu.email@exemplo.com"
                 keyboardType="email-address"
                 autoCapitalize="none"
-                placeholderTextColor={t.colors.muted}
+                placeholderTextColor={subtitleColor}
               />
 
-              <Text style={styles.inputLabel}>Telefone</Text>
+              <Text style={[styles.inputLabel, { color: titleColor }]}>Telefone</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: inputBg, borderColor: inputBorder, color: titleColor }]}
                 value={telefoneEdit}
                 onChangeText={setTelefoneEdit}
                 placeholder="(00) 00000-0000"
                 keyboardType="phone-pad"
-                placeholderTextColor={t.colors.muted}
+                placeholderTextColor={subtitleColor}
               />
 
               <Pressable
                 style={({ pressed }) => [
                   styles.primaryModalBtn,
+                  { backgroundColor: '#05BCAA' },
                   (isSaving || pressed) && styles.cardPressed,
                 ]}
                 onPress={salvarPerfil}
@@ -342,21 +362,21 @@ export function ConfiguracoesScreen() {
         animationType="fade"
         onRequestClose={fecharSobre}
       >
-        <View style={styles.centerModalOverlay}>
+        <View style={[styles.centerModalOverlay, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.75)' }]}>
           <Pressable style={styles.modalBackdrop} onPress={fecharSobre} />
-          <View style={styles.infoDialog}>
-            <View style={styles.infoIconCircle}>
-              <AppIcon name="volunteer_activism" size={32} color="#006A60" />
+          <View style={[styles.infoDialog, { backgroundColor: cardBg, borderColor: cardBorder, borderWidth: isDark ? 1 : 0 }]}>
+            <View style={[styles.infoIconCircle, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6' }]}>
+              <AppIcon name="volunteer_activism" size={32} color={primaryTeal} />
             </View>
-            <Text style={styles.infoDialogTitle}>Sobre o ConectAção</Text>
-            <Text style={styles.infoDialogBody}>
+            <Text style={[styles.infoDialogTitle, { color: titleColor }]}>Sobre o ConectAção</Text>
+            <Text style={[styles.infoDialogBody, { color: isDark ? '#CBD5E1' : '#4B5563' }]}>
               O ConectAção é uma plataforma solidária e transparente desenvolvida para conectar
               corações generosos a organizações não governamentais que transformam vidas.
             </Text>
-            <View style={styles.versionBadge}>
-              <Text style={styles.versionText}>Versão 1.0.0 • 2026</Text>
+            <View style={[styles.versionBadge, { backgroundColor: isDark ? '#262B35' : '#F3F4F6' }]}>
+              <Text style={[styles.versionText, { color: subtitleColor }]}>Versão 1.0.0 • 2026</Text>
             </View>
-            <Pressable style={styles.dialogCloseBtn} onPress={fecharSobre}>
+            <Pressable style={[styles.dialogCloseBtn, { backgroundColor: primaryTeal }]} onPress={fecharSobre}>
               <Text style={styles.dialogCloseBtnText}>Fechar</Text>
             </Pressable>
           </View>
@@ -370,22 +390,22 @@ export function ConfiguracoesScreen() {
         animationType="fade"
         onRequestClose={fecharTermos}
       >
-        <View style={styles.centerModalOverlay}>
+        <View style={[styles.centerModalOverlay, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.75)' }]}>
           <Pressable style={styles.modalBackdrop} onPress={fecharTermos} />
-          <View style={styles.infoDialog}>
-            <View style={styles.infoIconCircle}>
-              <AppIcon name="policy" size={32} color="#006A60" />
+          <View style={[styles.infoDialog, { backgroundColor: cardBg, borderColor: cardBorder, borderWidth: isDark ? 1 : 0 }]}>
+            <View style={[styles.infoIconCircle, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6' }]}>
+              <AppIcon name="policy" size={32} color={primaryTeal} />
             </View>
-            <Text style={styles.infoDialogTitle}>Privacidade e Segurança</Text>
+            <Text style={[styles.infoDialogTitle, { color: titleColor }]}>Privacidade e Segurança</Text>
             <ScrollView style={{ maxHeight: 220 }} showsVerticalScrollIndicator={false}>
-              <Text style={styles.infoDialogBody}>
+              <Text style={[styles.infoDialogBody, { color: isDark ? '#CBD5E1' : '#4B5563' }]}>
                 Seus dados cadastrais e histórico de doações são estritamente protegidos de acordo
                 com a Lei Geral de Proteção de Dados (LGPD). As doações financeiras utilizam
                 criptografia ponta a ponta e auditoria transparente para assegurar que 100% dos
                 recursos cheguem às causas apoiadas.
               </Text>
             </ScrollView>
-            <Pressable style={styles.dialogCloseBtn} onPress={fecharTermos}>
+            <Pressable style={[styles.dialogCloseBtn, { backgroundColor: primaryTeal }]} onPress={fecharTermos}>
               <Text style={styles.dialogCloseBtnText}>Entendido</Text>
             </Pressable>
           </View>
@@ -399,22 +419,22 @@ export function ConfiguracoesScreen() {
         animationType="fade"
         onRequestClose={fecharSuporte}
       >
-        <View style={styles.centerModalOverlay}>
+        <View style={[styles.centerModalOverlay, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.75)' }]}>
           <Pressable style={styles.modalBackdrop} onPress={fecharSuporte} />
-          <View style={styles.infoDialog}>
-            <View style={styles.infoIconCircle}>
-              <AppIcon name="help_outline" size={32} color="#006A60" />
+          <View style={[styles.infoDialog, { backgroundColor: cardBg, borderColor: cardBorder, borderWidth: isDark ? 1 : 0 }]}>
+            <View style={[styles.infoIconCircle, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6' }]}>
+              <AppIcon name="help_outline" size={32} color={primaryTeal} />
             </View>
-            <Text style={styles.infoDialogTitle}>Ajuda e Suporte</Text>
-            <Text style={styles.infoDialogBody}>
+            <Text style={[styles.infoDialogTitle, { color: titleColor }]}>Ajuda e Suporte</Text>
+            <Text style={[styles.infoDialogBody, { color: isDark ? '#CBD5E1' : '#4B5563' }]}>
               Precisa de ajuda com uma doação ou tem dúvidas sobre a plataforma? Nossa equipe está
               pronta para te atender:
             </Text>
-            <View style={styles.supportContactBox}>
-              <Text style={styles.supportContactText}>📧 contato@conectacao.org</Text>
-              <Text style={styles.supportContactText}>💬 WhatsApp: (11) 98765-4321</Text>
+            <View style={[styles.supportContactBox, { backgroundColor: isDark ? '#262B35' : '#F9FAFB' }]}>
+              <Text style={[styles.supportContactText, { color: titleColor }]}>📧 contato@conectacao.org</Text>
+              <Text style={[styles.supportContactText, { color: titleColor }]}>💬 WhatsApp: (11) 98765-4321</Text>
             </View>
-            <Pressable style={styles.dialogCloseBtn} onPress={fecharSuporte}>
+            <Pressable style={[styles.dialogCloseBtn, { backgroundColor: primaryTeal }]} onPress={fecharSuporte}>
               <Text style={styles.dialogCloseBtnText}>Fechar</Text>
             </Pressable>
           </View>
@@ -428,20 +448,23 @@ export function ConfiguracoesScreen() {
         animationType="fade"
         onRequestClose={fecharLogout}
       >
-        <View style={styles.centerModalOverlay}>
+        <View style={[styles.centerModalOverlay, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.75)' }]}>
           <Pressable style={styles.modalBackdrop} onPress={fecharLogout} />
-          <View style={styles.infoDialog}>
-            <View style={[styles.infoIconCircle, { backgroundColor: '#FEE2E2' }]}>
+          <View style={[styles.infoDialog, { backgroundColor: cardBg, borderColor: cardBorder, borderWidth: isDark ? 1 : 0 }]}>
+            <View style={[styles.infoIconCircle, { backgroundColor: isDark ? '#2D1616' : '#FEE2E2' }]}>
               <AppIcon name="logout" size={28} color="#DC2626" />
             </View>
-            <Text style={styles.infoDialogTitle}>Sair da Conta?</Text>
-            <Text style={styles.infoDialogBody}>
+            <Text style={[styles.infoDialogTitle, { color: titleColor }]}>Sair da Conta?</Text>
+            <Text style={[styles.infoDialogBody, { color: isDark ? '#CBD5E1' : '#4B5563' }]}>
               Você precisará realizar o login novamente para acessar seus dados e histórico de
               doações.
             </Text>
             <View style={styles.logoutActionsRow}>
-              <Pressable style={styles.cancelBtn} onPress={fecharLogout}>
-                <Text style={styles.cancelBtnText}>Cancelar</Text>
+              <Pressable
+                style={[styles.cancelBtn, { backgroundColor: isDark ? '#262B35' : '#F3F4F6' }]}
+                onPress={fecharLogout}
+              >
+                <Text style={[styles.cancelBtnText, { color: isDark ? '#FFFFFF' : '#374151' }]}>Cancelar</Text>
               </Pressable>
               <Pressable style={styles.confirmLogoutBtn} onPress={confirmarLogout}>
                 <Text style={styles.confirmLogoutBtnText}>Sair</Text>
@@ -457,20 +480,18 @@ export function ConfiguracoesScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
   },
   body: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: t.spacing.sm,
+    paddingTop: 10,
     paddingHorizontal: 20,
     paddingBottom: 100,
   },
 
   /* Título */
   pageTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 26,
     fontWeight: '800',
@@ -481,7 +502,6 @@ const styles = StyleSheet.create({
 
   /* Card do Usuário */
   userCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 16,
     flexDirection: 'row',
@@ -499,9 +519,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 30,
     overflow: 'hidden',
-    backgroundColor: '#E6F8F6',
     borderWidth: 2,
-    borderColor: '#05BCAA',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -514,10 +532,8 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E6F8F6',
   },
   avatarInitial: {
-    color: '#006A60',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 24,
     fontWeight: '800',
@@ -526,13 +542,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   userName: {
-    color: '#111827',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 18,
     fontWeight: '700',
   },
   userEmail: {
-    color: '#6B7280',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '400',
@@ -546,7 +560,6 @@ const styles = StyleSheet.create({
 
   /* Seções */
   sectionHeading: {
-    color: '#9CA3AF',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '700',
@@ -554,7 +567,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   cardContainer: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -585,7 +597,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   settingLabel: {
-    color: '#1F2937',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     fontWeight: '600',
@@ -594,7 +605,6 @@ const styles = StyleSheet.create({
   },
   rowDivider: {
     height: 1,
-    backgroundColor: '#F3F4F6',
     marginLeft: 72,
   },
 
@@ -613,14 +623,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoLabel: {
-    color: '#1F2937',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     fontWeight: '600',
   },
   infoDivider: {
     height: 1,
-    backgroundColor: '#F3F4F6',
     marginLeft: 16,
     marginRight: 16,
   },
@@ -630,8 +638,6 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#DC2626',
-    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -662,7 +668,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
   },
   modalSheet: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 22,
@@ -680,7 +685,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   modalTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 19,
     fontWeight: '800',
@@ -699,9 +703,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#E6F8F6',
     borderWidth: 2.5,
-    borderColor: '#006A60',
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
@@ -715,10 +717,8 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E6F8F6',
   },
   modalAvatarInitial: {
-    color: '#006A60',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 32,
     fontWeight: '800',
@@ -731,15 +731,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#E6F8F6',
     borderWidth: 1,
-    borderColor: '#BDEBE5',
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: 12,
   },
   pickGalleryBtnText: {
-    color: '#006A60',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
@@ -755,7 +752,6 @@ const styles = StyleSheet.create({
   },
 
   inputLabel: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',
@@ -765,18 +761,14 @@ const styles = StyleSheet.create({
   input: {
     height: 48,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
     borderRadius: 12,
     paddingHorizontal: 14,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
-    color: '#0A2540',
-    backgroundColor: '#F8FAFC',
   },
   primaryModalBtn: {
     height: 50,
     borderRadius: 14,
-    backgroundColor: '#006A60',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 22,
@@ -798,49 +790,45 @@ const styles = StyleSheet.create({
     color: '#DC2626',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
-    textAlign: 'center',
   },
 
-  /* Modais Centrais Informativos */
+  /* Modais Centrais */
   centerModalOverlay: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    alignItems: 'center',
     padding: 24,
   },
   infoDialog: {
     width: '100%',
-    maxWidth: 340,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
+    maxWidth: 360,
+    borderRadius: 24,
     padding: 24,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.15,
-    shadowRadius: 14,
+    shadowRadius: 16,
     elevation: 8,
   },
   infoIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     backgroundColor: '#E6F8F6',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
   },
   infoDialogTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 19,
     fontWeight: '800',
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   infoDialogBody: {
-    color: '#475569',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     lineHeight: 22,
@@ -848,25 +836,20 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   versionBadge: {
-    backgroundColor: '#E6F8F6',
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 12,
-    marginBottom: 18,
-    borderWidth: 1,
-    borderColor: '#BDEBE5',
+    marginBottom: 16,
   },
   versionText: {
-    color: '#006A60',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '700',
   },
   dialogCloseBtn: {
     width: '100%',
-    height: 46,
-    borderRadius: 12,
-    backgroundColor: '#006A60',
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -874,46 +857,44 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
   },
+
   supportContactBox: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-    padding: 12,
     width: '100%',
-    gap: 6,
-    marginBottom: 18,
+    padding: 14,
+    borderRadius: 14,
+    gap: 8,
+    marginBottom: 16,
   },
   supportContactText: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
   },
+
   logoutActionsRow: {
     flexDirection: 'row',
     gap: 12,
     width: '100%',
-    marginTop: 6,
+    marginTop: 8,
   },
   cancelBtn: {
     flex: 1,
-    height: 46,
-    borderRadius: 12,
-    backgroundColor: '#F1F5F9',
+    height: 48,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cancelBtnText: {
-    color: '#475569',
     fontFamily: 'Plus Jakarta Sans',
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
   },
   confirmLogoutBtn: {
     flex: 1,
-    height: 46,
-    borderRadius: 12,
+    height: 48,
+    borderRadius: 14,
     backgroundColor: '#DC2626',
     alignItems: 'center',
     justifyContent: 'center',
@@ -921,11 +902,10 @@ const styles = StyleSheet.create({
   confirmLogoutBtnText: {
     color: '#FFFFFF',
     fontFamily: 'Plus Jakarta Sans',
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '800',
   },
   cardPressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.98 }],
+    opacity: 0.8,
   },
 });

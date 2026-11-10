@@ -1,4 +1,5 @@
-export const authTheme = {
+export const lightTheme = {
+  isDark: false,
   colors: {
     brand: '#013978',
     teal: '#05BCAA',
@@ -21,7 +22,99 @@ export const authTheme = {
     orange: '#FB6407',
     heart: '#E53935',
     heartSurface: '#FFEBEE',
+
+    // Component specific tokens
+    headerBg: '#FFFFFF',
+    headerBorder: '#E5E7EB',
+    tabBarBg: '#FFFFFF',
+    tabBarBorder: 'rgba(1, 57, 120, 0.08)',
+    tabBarActivePill: '#5EEAD4',
+    tabBarActiveText: '#006A60',
+    tabBarInactiveText: '#6E7881',
+    drawerBg: '#FFFFFF',
+    drawerHeaderBg: '#F3F4F6',
+    drawerActiveBg: '#E6F8F6',
+    drawerActiveText: '#013978',
+    drawerText: '#3E4850',
+    cardBg: '#FFFFFF',
+    cardBorder: 'transparent',
+    cardSecondaryBtnBg: '#F3F4F6',
+    cardSecondaryBtnText: '#013978',
+    inputBg: '#FFFFFF',
+    inputTextColor: '#191C1D',
+    quoteBg: '#F0F9FF',
+    quoteBorder: '#BAE6FD',
+    quoteText: '#0369A1',
+    quoteAuthor: '#0284C7',
+    quoteMark: '#BAE6FD',
+    dialogBg: '#FFFFFF',
+    overlayBg: 'rgba(0, 0, 0, 0.45)',
   },
   spacing: { xs: 6, sm: 10, md: 16, lg: 24, xl: 32, xxl: 44 },
   radius: { field: 14, card: 28, button: 14, pill: 999 },
 } as const;
+
+export const darkTheme = {
+  isDark: true,
+  colors: {
+    brand: '#0AAEEE',
+    teal: '#05BCAA',
+    tealDark: '#05BCAA',
+    cyan: '#0AAEEE',
+    page: '#111418',
+    subtle: '#262B35',
+    activeSurface: '#0D3331',
+    canvas: '#111418',
+    surface: '#1A1D24',
+    ink: '#FFFFFF',
+    text: '#CBD5E1',
+    muted: '#9CA3AF',
+    line: '#242A35',
+    inputBorder: '#2E3543',
+    lineStrong: '#05BCAA',
+    error: '#EF4444',
+    errorSurface: '#2D1616',
+    errorBorder: '#5C2424',
+    orange: '#FB6407',
+    heart: '#EF4444',
+    heartSurface: '#2D1616',
+
+    // Component specific tokens
+    headerBg: '#121418',
+    headerBorder: '#242A35',
+    tabBarBg: '#16191E',
+    tabBarBorder: '#242A35',
+    tabBarActivePill: '#133835',
+    tabBarActiveText: '#05BCAA',
+    tabBarInactiveText: '#9CA3AF',
+    drawerBg: '#181B20',
+    drawerHeaderBg: '#181B20',
+    drawerActiveBg: '#222A36',
+    drawerActiveText: '#0AAEEE',
+    drawerText: '#CBD5E1',
+    cardBg: '#1A1D24',
+    cardBorder: '#262B35',
+    cardSecondaryBtnBg: '#262B35',
+    cardSecondaryBtnText: '#FFFFFF',
+    inputBg: '#1A1D24',
+    inputTextColor: '#FFFFFF',
+    quoteBg: '#0C233C',
+    quoteBorder: '#163B66',
+    quoteText: '#FFFFFF',
+    quoteAuthor: '#38BDF8',
+    quoteMark: 'rgba(56, 189, 248, 0.18)',
+    dialogBg: '#1A1D24',
+    overlayBg: 'rgba(0, 0, 0, 0.72)',
+  },
+  spacing: { xs: 6, sm: 10, md: 16, lg: 24, xl: 32, xxl: 44 },
+  radius: { field: 14, card: 28, button: 14, pill: 999 },
+} as const;
+
+export type AppTheme = {
+  isDark: boolean;
+  colors: { [K in keyof typeof lightTheme.colors]: string };
+  spacing: typeof lightTheme.spacing;
+  radius: typeof lightTheme.radius;
+};
+
+export const authTheme = lightTheme;

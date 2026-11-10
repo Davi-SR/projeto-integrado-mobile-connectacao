@@ -9,4 +9,12 @@ export const DoacaoRepository = {
       method: 'POST',
       body: JSON.stringify(payload),
     }),
+  confirmar: (id: number) =>
+    fetchJson<Doacao>(`/doacoes/${id}/confirmar`, {
+      method: 'POST',
+    }),
+  cancelar: (id: number) =>
+    fetchJson<Doacao>(`/doacoes/${id}/cancelar`, {
+      method: 'POST',
+    }),
 };

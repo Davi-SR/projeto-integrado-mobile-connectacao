@@ -23,6 +23,7 @@ import {
   useBuscarViewModel,
 } from '../../viewmodel/useBuscarViewModel';
 import { CampanhaDestaque } from '../../model/entities/CampanhaDestaque';
+import { useTheme } from '../../theme/ThemeContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Buscar'>;
 
@@ -41,6 +42,8 @@ function CampanhaBuscarCard({
   campanha: CampanhaDestaque;
   onPress: () => void;
 }) {
+  const { isDark, theme } = useTheme();
+
   const metaVal = campanha.meta || 0;
   const arrecadadoVal = campanha.valorArrecadado || 0;
   const percentual = Math.min(
@@ -48,36 +51,45 @@ function CampanhaBuscarCard({
     Math.max(0, Math.round(campanha.percentualMeta || 0)),
   );
 
+  const cardBg = isDark ? '#1A1D24' : theme.colors.surface;
+  const borderColor = isDark ? '#242A35' : '#F1F5F9';
+  const titleColor = isDark ? '#FFFFFF' : '#0A2540';
+  const subtitleColor = isDark ? '#9CA3AF' : t.colors.muted;
+
   return (
     <Pressable
-      style={({ pressed }) => [styles.campanhaCard, pressed && styles.cardPressed]}
+      style={({ pressed }) => [
+        styles.campanhaCard,
+        { backgroundColor: cardBg, borderColor },
+        pressed && styles.cardPressed,
+      ]}
       onPress={onPress}
       accessibilityRole="button"
     >
       <View style={styles.campanhaCardTop}>
         <View style={styles.campanhaInfo}>
-          <Text style={styles.campanhaTitle} numberOfLines={2}>
+          <Text style={[styles.campanhaTitle, { color: titleColor }]} numberOfLines={2}>
             {campanha.titulo}
           </Text>
           {campanha.ongNome && (
-            <Text style={styles.campanhaOngNome} numberOfLines={1}>
+            <Text style={[styles.campanhaOngNome, { color: subtitleColor }]} numberOfLines={1}>
               Por {campanha.ongNome}
             </Text>
           )}
         </View>
-        <View style={styles.percentBadge}>
-          <Text style={styles.percentText}>{percentual}%</Text>
+        <View style={[styles.percentBadge, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6' }]}>
+          <Text style={[styles.percentText, { color: isDark ? '#05BCAA' : t.colors.tealDark }]}>{percentual}%</Text>
         </View>
       </View>
 
       {/* Barra de Progresso */}
-      <View style={styles.progressTrack}>
+      <View style={[styles.progressTrack, { backgroundColor: isDark ? '#262B35' : '#E0F2FE' }]}>
         <View style={[styles.progressFill, { width: `${percentual}%` }]} />
       </View>
 
       {/* Valores e Ação */}
       <View style={styles.campanhaFooter}>
-        <Text style={styles.campanhaValor}>
+        <Text style={[styles.campanhaValor, { color: subtitleColor }]}>
           R${' '}
           {arrecadadoVal.toLocaleString('pt-BR', {
             minimumFractionDigits: 0,
@@ -89,9 +101,9 @@ function CampanhaBuscarCard({
             maximumFractionDigits: 0,
           })}
         </Text>
-        <View style={styles.doarMiniBtn}>
-          <AppIcon name="volunteer_activism" size={14} color={t.colors.tealDark} />
-          <Text style={styles.doarMiniText}>Apoiar</Text>
+        <View style={[styles.doarMiniBtn, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6' }]}>
+          <AppIcon name="volunteer_activism" size={14} color={isDark ? '#05BCAA' : t.colors.tealDark} />
+          <Text style={[styles.doarMiniText, { color: isDark ? '#05BCAA' : t.colors.tealDark }]}>Apoiar</Text>
         </View>
       </View>
     </Pressable>
@@ -99,6 +111,8 @@ function CampanhaBuscarCard({
 }
 
 export function BuscarScreen({ navigation }: Props) {
+  const { isDark, theme } = useTheme();
+
   const {
     search,
     setSearch,
@@ -119,17 +133,27 @@ export function BuscarScreen({ navigation }: Props) {
     recarregar,
   } = useBuscarViewModel();
 
-  const filtrosTipo: { tipo: TipoFiltroBuscar; label: string }[] = [
+  const filtrosTipo: Array<{ tipo: TipoFiltroBuscar; label: string }> = [
     { tipo: 'TUDO', label: 'Tudo' },
     { tipo: 'ONGS', label: 'ONGs' },
     { tipo: 'CAMPANHAS', label: 'Campanhas' },
     { tipo: 'FAVORITAS', label: 'Favoritas' },
   ];
 
-  const emModoExploracao = !search.trim() && selectedCategoriaId === null && tipoFiltro === 'TUDO';
+  const emModoExploracao =
+    search.trim().length === 0 &&
+    selectedCategoriaId === null &&
+    tipoFiltro === 'TUDO';
+
+  const pageBg = isDark ? '#111418' : t.colors.page;
+  const titleColor = isDark ? '#FFFFFF' : t.colors.ink;
+  const subtitleColor = isDark ? '#9CA3AF' : t.colors.muted;
+  const cardBg = isDark ? '#1A1D24' : t.colors.surface;
+  const borderColor = isDark ? '#242A35' : '#F1F5F9';
+  const spinnerColor = isDark ? '#05BCAA' : t.colors.tealDark;
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: pageBg }]}>
       <HomeHeader />
 
       <ScrollView
@@ -141,8 +165,8 @@ export function BuscarScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={isLoading}
             onRefresh={recarregar}
-            tintColor={t.colors.tealDark}
-            colors={[t.colors.tealDark]}
+            tintColor={spinnerColor}
+            colors={[spinnerColor]}
           />
         }
       >
@@ -158,11 +182,31 @@ export function BuscarScreen({ navigation }: Props) {
             return (
               <Pressable
                 key={f.tipo}
-                style={[styles.tabButton, isActive && styles.tabButtonActive]}
+                style={[
+                  styles.tabButton,
+                  {
+                    backgroundColor: isActive
+                      ? (isDark ? '#0D3331' : t.colors.activeSurface)
+                      : (isDark ? '#1A1D24' : t.colors.surface),
+                    borderColor: isActive
+                      ? (isDark ? '#05BCAA' : t.colors.tealDark)
+                      : (isDark ? '#2E3543' : t.colors.inputBorder),
+                  },
+                ]}
                 onPress={() => setTipoFiltro(f.tipo)}
                 accessibilityRole="button"
               >
-                <Text style={[styles.tabButtonText, isActive && styles.tabButtonTextActive]}>
+                <Text
+                  style={[
+                    styles.tabButtonText,
+                    {
+                      color: isActive
+                        ? (isDark ? '#05BCAA' : t.colors.tealDark)
+                        : (isDark ? '#CBD5E1' : t.colors.text),
+                    },
+                    isActive && styles.tabButtonTextActive,
+                  ]}
+                >
                   {f.label}
                 </Text>
               </Pressable>
@@ -182,14 +226,14 @@ export function BuscarScreen({ navigation }: Props) {
         {/* Estado de Carregamento */}
         {isLoading && (
           <View style={styles.centerState}>
-            <ActivityIndicator size="small" color={t.colors.tealDark} />
-            <Text style={styles.loadingText}>Atualizando resultados...</Text>
+            <ActivityIndicator size="small" color={spinnerColor} />
+            <Text style={[styles.loadingText, { color: subtitleColor }]}>Atualizando resultados...</Text>
           </View>
         )}
 
         {/* Estado de Erro */}
         {error && (
-          <View style={styles.errorBox}>
+          <View style={[styles.errorBox, { backgroundColor: isDark ? '#2D1616' : '#FFF0F0' }]}>
             <Text style={styles.errorText}>{error}</Text>
             <Pressable onPress={recarregar} style={styles.retryBtn}>
               <Text style={styles.retryText}>Tentar novamente</Text>
@@ -202,23 +246,29 @@ export function BuscarScreen({ navigation }: Props) {
           <>
             {/* Sugestões Populares */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Sugestões Populares</Text>
+              <Text style={[styles.sectionTitle, { color: titleColor }]}>Sugestões Populares</Text>
             </View>
             <View style={styles.sugestoesRow}>
               {SUGESTOES_POPULARES.map((sug) => (
                 <Pressable
                   key={sug.label}
-                  style={styles.sugestaoChip}
+                  style={[
+                    styles.sugestaoChip,
+                    {
+                      backgroundColor: cardBg,
+                      borderColor: isDark ? '#2E3543' : '#E2E8F0',
+                    },
+                  ]}
                   onPress={() => setSearch(sug.query)}
                 >
-                  <Text style={styles.sugestaoChipText}>{sug.label}</Text>
+                  <Text style={[styles.sugestaoChipText, { color: isDark ? '#CBD5E1' : '#334155' }]}>{sug.label}</Text>
                 </Pressable>
               ))}
             </View>
 
             {/* Grid de Exploração por Categorias */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Explorar por Causa</Text>
+              <Text style={[styles.sectionTitle, { color: titleColor }]}>Explorar por Causa</Text>
             </View>
             <View style={styles.categoryGrid}>
               {categorias.map((cat) => {
@@ -226,11 +276,12 @@ export function BuscarScreen({ navigation }: Props) {
                 return (
                   <Pressable
                     key={cat.id}
-                    style={styles.gridCard}
+                    style={[styles.gridCard, { backgroundColor: cardBg, borderColor }]}
                     onPress={() => selecionarCategoria(cat.id)}
                   >
-                    <View style={styles.gridIconCircle}>
+                    <View style={[styles.gridIconCircle, { backgroundColor: isDark ? '#0D3331' : t.colors.activeSurface }]}>
                       <CategoryIcon
+                        color={isDark ? '#05BCAA' : undefined}
                         type={
                           cat.nome.toLowerCase().includes('educ')
                             ? 'education'
@@ -247,10 +298,10 @@ export function BuscarScreen({ navigation }: Props) {
                         }
                       />
                     </View>
-                    <Text style={styles.gridTitle} numberOfLines={1}>
+                    <Text style={[styles.gridTitle, { color: titleColor }]} numberOfLines={1}>
                       {cat.nome}
                     </Text>
-                    <Text style={styles.gridCount}>
+                    <Text style={[styles.gridCount, { color: subtitleColor }]}>
                       {count} {count === 1 ? 'ONG' : 'ONGs'}
                     </Text>
                   </Pressable>
@@ -265,7 +316,7 @@ export function BuscarScreen({ navigation }: Props) {
           <>
             {/* Cabeçalho de Resultados com Contador */}
             <View style={styles.resultsHeader}>
-              <Text style={styles.sectionTitle}>
+              <Text style={[styles.sectionTitle, { color: titleColor }]}>
                 {search.trim()
                   ? `Resultados para "${search.trim()}"`
                   : selectedCategoriaNome
@@ -274,7 +325,7 @@ export function BuscarScreen({ navigation }: Props) {
                   ? 'Minhas ONGs Favoritas'
                   : 'Todas as Causas e ONGs'}
               </Text>
-              <Text style={styles.resultsCountBadge}>
+              <Text style={[styles.resultsCountBadge, { backgroundColor: isDark ? '#0D3331' : t.colors.activeSurface, color: isDark ? '#05BCAA' : t.colors.tealDark }]}>
                 {totalResultados} {totalResultados === 1 ? 'item' : 'itens'}
               </Text>
             </View>
@@ -282,24 +333,24 @@ export function BuscarScreen({ navigation }: Props) {
             {/* Empty State */}
             {totalResultados === 0 ? (
               <View style={styles.emptyContainer}>
-                <View style={styles.emptyIconCircle}>
-                  <AppIcon name="search_off" size={32} color={t.colors.muted} />
+                <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? '#262B35' : '#F3F4F6' }]}>
+                  <AppIcon name="search_off" size={32} color={subtitleColor} />
                 </View>
-                <Text style={styles.emptyTitle}>Nenhum resultado encontrado</Text>
-                <Text style={styles.emptySubtitle}>
+                <Text style={[styles.emptyTitle, { color: titleColor }]}>Nenhum resultado encontrado</Text>
+                <Text style={[styles.emptySubtitle, { color: subtitleColor }]}>
                   {search.trim()
                     ? `Não encontramos nenhuma ONG ou campanha para "${search.trim()}".`
                     : 'Tente selecionar outra categoria ou limpar os filtros aplicados.'}
                 </Text>
                 <Pressable
-                  style={styles.clearAllBtn}
+                  style={[styles.clearAllBtn, { backgroundColor: isDark ? '#0D3331' : t.colors.activeSurface }]}
                   onPress={() => {
                     setSearch('');
                     selecionarCategoria(null);
                     setTipoFiltro('TUDO');
                   }}
                 >
-                  <Text style={styles.clearAllText}>Limpar todos os filtros</Text>
+                  <Text style={[styles.clearAllText, { color: isDark ? '#05BCAA' : t.colors.tealDark }]}>Limpar todos os filtros</Text>
                 </Pressable>
               </View>
             ) : (
@@ -307,7 +358,7 @@ export function BuscarScreen({ navigation }: Props) {
                 {/* Seção de Campanhas Encontradas */}
                 {campanhasFiltradas.length > 0 && (
                   <View style={styles.groupSection}>
-                    <Text style={styles.subGroupTitle}>Campanhas em Andamento</Text>
+                    <Text style={[styles.subGroupTitle, { color: subtitleColor }]}>Campanhas em Andamento</Text>
                     {campanhasFiltradas.map((campanha) => (
                       <CampanhaBuscarCard
                         key={campanha.id}
@@ -324,7 +375,7 @@ export function BuscarScreen({ navigation }: Props) {
                 {ongsFiltradas.length > 0 && (
                   <View style={styles.groupSection}>
                     {campanhasFiltradas.length > 0 && (
-                      <Text style={styles.subGroupTitle}>ONGs & Instituições</Text>
+                      <Text style={[styles.subGroupTitle, { color: subtitleColor }]}>ONGs & Instituições</Text>
                     )}
                     {ongsFiltradas.map((ong) => (
                       <View key={ong.id} style={styles.ongSpacing}>
@@ -353,14 +404,13 @@ export function BuscarScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: t.colors.page,
   },
   body: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: t.spacing.md,
-    paddingHorizontal: t.spacing.lg,
+    paddingTop: 16,
+    paddingHorizontal: 20,
     paddingBottom: 90,
   },
   searchSection: {
@@ -374,25 +424,19 @@ const styles = StyleSheet.create({
   tabButton: {
     flex: 1,
     paddingVertical: 9,
-    borderRadius: t.radius.pill,
-    backgroundColor: t.colors.surface,
+    borderRadius: 999,
     borderWidth: 1.5,
-    borderColor: t.colors.inputBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tabButtonActive: {
-    backgroundColor: t.colors.activeSurface,
-    borderColor: t.colors.tealDark,
-  },
+  tabButtonActive: {},
   tabButtonText: {
-    color: t.colors.text,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',
   },
   tabButtonTextActive: {
-    color: t.colors.tealDark,
+    fontWeight: '800',
   },
   categorySection: {
     marginBottom: 18,
@@ -405,7 +449,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    color: t.colors.ink,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 18,
     fontWeight: '800',
@@ -418,14 +461,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   resultsCountBadge: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',
-    backgroundColor: t.colors.activeSurface,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: t.radius.pill,
+    borderRadius: 999,
   },
   sugestoesRow: {
     flexDirection: 'row',
@@ -436,10 +477,8 @@ const styles = StyleSheet.create({
   sugestaoChip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: t.radius.pill,
-    backgroundColor: t.colors.surface,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.04,
@@ -447,7 +486,6 @@ const styles = StyleSheet.create({
     elevation: 1,
   },
   sugestaoChipText: {
-    color: '#334155',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '600',
@@ -460,11 +498,9 @@ const styles = StyleSheet.create({
   },
   gridCard: {
     width: '48%',
-    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -478,20 +514,17 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: t.colors.activeSurface,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
   gridTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
     textAlign: 'center',
   },
   gridCount: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '500',
@@ -500,7 +533,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   subGroupTitle: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
@@ -510,17 +542,15 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   ongSpacing: {
-    marginBottom: t.spacing.lg,
+    marginBottom: 20,
   },
 
   /* Campanha Card */
   campanhaCard: {
-    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -538,42 +568,36 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   campanhaTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     fontWeight: '700',
     lineHeight: 20,
   },
   campanhaOngNome: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
-    fontWeight: '500',
-    marginTop: 2,
+    marginTop: 3,
   },
   percentBadge: {
-    backgroundColor: t.colors.activeSurface,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
   },
   percentText: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '800',
   },
   progressTrack: {
-    height: 7,
-    backgroundColor: '#E0F2FE',
-    borderRadius: 3.5,
+    height: 6,
+    borderRadius: 3,
+    marginBottom: 12,
     overflow: 'hidden',
-    marginBottom: 10,
   },
   progressFill: {
     height: '100%',
     backgroundColor: '#FB6407',
-    borderRadius: 3.5,
+    borderRadius: 3,
   },
   campanhaFooter: {
     flexDirection: 'row',
@@ -581,7 +605,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   campanhaValor: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '600',
@@ -590,107 +613,93 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#E6F8F6',
-    paddingHorizontal: 12,
+    paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: t.radius.pill,
+    borderRadius: 8,
   },
   doarMiniText: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '700',
   },
-  cardPressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.99 }],
-  },
 
   /* Empty State */
   emptyContainer: {
-    backgroundColor: t.colors.surface,
-    borderRadius: 18,
-    padding: 28,
+    paddingVertical: 36,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#F1F5F9',
-    gap: 10,
+    gap: 12,
   },
   emptyIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#F1F5F9',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
   emptyTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
   },
   emptySubtitle: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
-    fontSize: 13,
+    fontSize: 14,
     textAlign: 'center',
-    lineHeight: 19,
-    paddingHorizontal: 10,
+    lineHeight: 20,
+    maxWidth: 280,
   },
   clearAllBtn: {
     marginTop: 6,
     paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: t.radius.pill,
-    backgroundColor: t.colors.activeSurface,
+    borderRadius: 999,
   },
   clearAllText: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
   },
 
   /* Status */
   centerState: {
-    paddingVertical: 16,
+    paddingVertical: 20,
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
   loadingText: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
   },
   errorBox: {
-    padding: 14,
+    padding: 12,
     borderRadius: 12,
-    backgroundColor: '#FFF0F0',
     alignItems: 'center',
-    marginBottom: 14,
+    marginBottom: 12,
   },
   errorText: {
-    color: t.colors.error,
+    color: '#EF4444',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     textAlign: 'center',
-    marginBottom: 6,
+    marginBottom: 4,
   },
   retryBtn: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: t.colors.error,
+    backgroundColor: '#EF4444',
   },
   retryText: {
     color: '#FFFFFF',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '700',
+  },
+  cardPressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.99 }],
   },
 });

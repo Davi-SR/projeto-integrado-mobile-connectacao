@@ -76,6 +76,35 @@ export function useOngDetailsViewModel(ongId: number) {
     [user?.id, carregarOng],
   );
 
+  const confirmarDoacao = useCallback(
+    async (doacaoId: number) => {
+      try {
+        const doacao = await DoacaoRepository.confirmar(doacaoId);
+        void carregarOng();
+        return doacao;
+      } catch {
+        // Fallback local se o backend não tiver o endpoint
+        void carregarOng();
+        return null;
+      }
+    },
+    [carregarOng],
+  );
+
+  const cancelarDoacao = useCallback(
+    async (doacaoId: number) => {
+      try {
+        const doacao = await DoacaoRepository.cancelar(doacaoId);
+        void carregarOng();
+        return doacao;
+      } catch {
+        void carregarOng();
+        return null;
+      }
+    },
+    [carregarOng],
+  );
+
   return {
     ong,
     campanhas,
@@ -85,6 +114,8 @@ export function useOngDetailsViewModel(ongId: number) {
     isFavorite,
     toggleFavorito,
     realizarDoacao,
+    confirmarDoacao,
+    cancelarDoacao,
     recarregar: carregarOng,
   };
 }

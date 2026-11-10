@@ -19,13 +19,18 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { authTheme as t } from '../../theme/authTheme';
 import { AppIcon } from '../components/HomeIcons';
+import { PixPaymentModal } from '../components/PixPaymentModal';
 import { useOngDetailsViewModel } from '../../viewmodel/useOngDetailsViewModel';
+import { useTheme } from '../../theme/ThemeContext';
+import { gerarPixCopiaECola } from '../../services/pixHelper';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OngDetails'>;
 
 const VALORES_PREDEFINIDOS = [20, 50, 100, 200];
 
 export function OngDetailsScreen({ navigation, route }: Props) {
+  const { isDark, theme } = useTheme();
+
   const {
     ong,
     campanhas,
@@ -33,6 +38,7 @@ export function OngDetailsScreen({ navigation, route }: Props) {
     isLoading,
     error,
     realizarDoacao,
+    confirmarDoacao,
     recarregar,
   } = useOngDetailsViewModel(route.params.ongId);
 
@@ -46,6 +52,22 @@ export function OngDetailsScreen({ navigation, route }: Props) {
   const [formaPagamento, setFormaPagamento] = useState<'PIX' | 'CARTAO'>('PIX');
   const [campanhaSelecionadaId, setCampanhaSelecionadaId] = useState<number | null>(null);
   const [doando, setDoando] = useState(false);
+
+  // Modal Interativo de Pagamento PIX
+  const [pixModalVisible, setPixModalVisible] = useState(false);
+  const [pixDados, setPixDados] = useState<{
+    copiaECola: string;
+    qrCodeUrl: string;
+    valor: number;
+    doacaoId: number | null;
+    campanhaTitulo?: string;
+  }>({
+    copiaECola: '',
+    qrCodeUrl: '',
+    valor: 0,
+    doacaoId: null,
+    campanhaTitulo: '',
+  });
 
   const handleShare = async () => {
     if (!ong) return;
@@ -83,15 +105,42 @@ export function OngDetailsScreen({ navigation, route }: Props) {
       return;
     }
 
+    const campanhaObj = campanhas.find((c) => c.id === campanhaId);
+
     setDoando(true);
     try {
-      await realizarDoacao(campanhaId, valorFinal, formaPagamento);
+      const doacaoCriada = await realizarDoacao(campanhaId, valorFinal, formaPagamento);
       setModalVisible(false);
       setValorCustomizado('');
-      Alert.alert(
-        'Doação Realizada com Sucesso! 🎉',
-        `Muito obrigado! Sua doação de R$ ${valorFinal.toFixed(2).replace('.', ',')} para ${ong?.nome} foi confirmada.`,
-      );
+
+      if (formaPagamento === 'PIX') {
+        let copiaECola = doacaoCriada?.pixCopiaECola;
+        let qrCodeUrl = doacaoCriada?.pixQrCodeUrl;
+
+        if (!copiaECola || !qrCodeUrl) {
+          const gerado = gerarPixCopiaECola({
+            valor: valorFinal,
+            txId: doacaoCriada?.id ? `DOA${doacaoCriada.id}` : '***',
+            nome: ong?.nome,
+          });
+          copiaECola = gerado.copiaECola;
+          qrCodeUrl = gerado.qrCodeUrl;
+        }
+
+        setPixDados({
+          copiaECola,
+          qrCodeUrl,
+          valor: valorFinal,
+          doacaoId: doacaoCriada?.id ?? null,
+          campanhaTitulo: campanhaObj?.titulo,
+        });
+        setPixModalVisible(true);
+      } else {
+        Alert.alert(
+          'Doação Realizada com Sucesso! 🎉',
+          `Muito obrigado! Sua doação de R$ ${valorFinal.toFixed(2).replace('.', ',')} para ${ong?.nome} foi confirmada.`,
+        );
+      }
     } catch (err) {
       Alert.alert('Erro ao Doar', err instanceof Error ? err.message : 'Não foi possível processar a doação.');
     } finally {
@@ -99,12 +148,23 @@ export function OngDetailsScreen({ navigation, route }: Props) {
     }
   };
 
+  const pageBg = isDark ? '#111418' : theme.colors.page;
+  const topBarBg = isDark ? '#121418' : theme.colors.surface;
+  const topBarBorder = isDark ? '#242A35' : 'rgba(0, 0, 0, 0.05)';
+  const topBarTitleColor = isDark ? '#0AAEEE' : theme.colors.tealDark;
+  const topBarIconColor = isDark ? '#05BCAA' : theme.colors.tealDark;
+  const cardBg = isDark ? '#1A1D24' : '#FFFFFF';
+  const cardBorder = isDark ? '#242A35' : '#F1F5F9';
+  const titleColor = isDark ? '#FFFFFF' : '#0A2540';
+  const textColor = isDark ? '#CBD5E1' : '#334155';
+  const subtitleColor = isDark ? '#9CA3AF' : '#64748B';
+
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: pageBg }]}>
         <View style={styles.centerState}>
-          <ActivityIndicator size="large" color={t.colors.tealDark} />
-          <Text style={styles.loadingText}>Carregando perfil da ONG...</Text>
+          <ActivityIndicator size="large" color={isDark ? '#05BCAA' : theme.colors.tealDark} />
+          <Text style={[styles.loadingText, { color: subtitleColor }]}>Carregando perfil da ONG...</Text>
         </View>
       </SafeAreaView>
     );
@@ -112,15 +172,15 @@ export function OngDetailsScreen({ navigation, route }: Props) {
 
   if (error || !ong) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: pageBg }]}>
         <View style={styles.centerState}>
-          <AppIcon name="error_outline" size={40} color={t.colors.error} />
-          <Text style={styles.errorTitle}>Não foi possível carregar esta ONG.</Text>
+          <AppIcon name="error_outline" size={40} color={theme.colors.error} />
+          <Text style={[styles.errorTitle, { color: titleColor }]}>Não foi possível carregar esta ONG.</Text>
           <Pressable onPress={() => void recarregar()} style={styles.retryButton}>
             <Text style={styles.retryButtonText}>Tentar novamente</Text>
           </Pressable>
           <Pressable onPress={() => navigation.goBack()} style={styles.backLink}>
-            <Text style={styles.backLinkText}>Voltar</Text>
+            <Text style={[styles.backLinkText, { color: isDark ? '#0AAEEE' : theme.colors.tealDark }]}>Voltar</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -131,19 +191,19 @@ export function OngDetailsScreen({ navigation, route }: Props) {
   const categoria = categoriaNome || 'Educação';
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: pageBg }]}>
       {/* 1) Barra de Topo Padronizada */}
-      <View style={styles.topBar}>
+      <View style={[styles.topBar, { backgroundColor: topBarBg, borderBottomColor: topBarBorder }]}>
         <Pressable
           onPress={() => navigation.goBack()}
           accessibilityRole="button"
           accessibilityLabel="Voltar"
           style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
         >
-          <AppIcon name="arrow_back" size={24} color={t.colors.tealDark} />
+          <AppIcon name="arrow_back" size={24} color={topBarIconColor} />
         </Pressable>
 
-        <Text style={styles.topBarTitle}>ConectAção</Text>
+        <Text style={[styles.topBarTitle, { color: topBarTitleColor }]}>ConectAção</Text>
 
         <Pressable
           onPress={handleShare}
@@ -151,7 +211,7 @@ export function OngDetailsScreen({ navigation, route }: Props) {
           accessibilityLabel="Compartilhar"
           style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
         >
-          <AppIcon name="share" size={22} color={t.colors.tealDark} />
+          <AppIcon name="share" size={22} color={topBarIconColor} />
         </Pressable>
       </View>
 
@@ -161,7 +221,7 @@ export function OngDetailsScreen({ navigation, route }: Props) {
         showsVerticalScrollIndicator={false}
       >
         {/* 2) Banner Principal com Badge de Categoria */}
-        <View style={styles.bannerContainer}>
+        <View style={[styles.bannerContainer, { backgroundColor: isDark ? '#262B35' : theme.colors.subtle }]}>
           {ong.imagemUrl && !imageFailed ? (
             <Image
               source={{ uri: ong.imagemUrl }}
@@ -170,20 +230,22 @@ export function OngDetailsScreen({ navigation, route }: Props) {
               resizeMode="cover"
             />
           ) : (
-            <View style={[styles.bannerImage, styles.bannerFallback]}>
-              <AppIcon name="volunteer_activism" size={56} color={t.colors.tealDark} />
+            <View style={[styles.bannerImage, styles.bannerFallback, { backgroundColor: isDark ? '#262B35' : '#E6F4F1' }]}>
+              <AppIcon name="volunteer_activism" size={56} color={isDark ? '#05BCAA' : theme.colors.tealDark} />
             </View>
           )}
 
           {/* Badge flutuante no canto inferior esquerdo */}
-          <View style={styles.categoryBadge}>
-            <Text style={styles.categoryBadgeText}>{categoria}</Text>
+          <View style={[styles.categoryBadge, { backgroundColor: isDark ? '#0D3331' : '#FFFFFF' }]}>
+            <Text style={[styles.categoryBadgeText, { color: isDark ? '#05BCAA' : theme.colors.tealDark }]}>
+              {categoria}
+            </Text>
           </View>
         </View>
 
         {/* 3) Identidade da ONG (Logo + Nome + Localização) */}
         <View style={styles.identityRow}>
-          <View style={styles.logoCircle}>
+          <View style={[styles.logoCircle, { backgroundColor: isDark ? '#1A1D24' : '#FFFFFF', borderColor: cardBorder }]}>
             {ong.imagemUrl && !logoFailed ? (
               <Image
                 source={{ uri: ong.imagemUrl }}
@@ -192,26 +254,26 @@ export function OngDetailsScreen({ navigation, route }: Props) {
                 resizeMode="cover"
               />
             ) : (
-              <AppIcon name="domain" size={28} color={t.colors.tealDark} />
+              <AppIcon name="domain" size={28} color={isDark ? '#05BCAA' : theme.colors.tealDark} />
             )}
           </View>
 
           <View style={styles.identityInfo}>
-            <Text style={styles.ongName}>{ong.nome}</Text>
+            <Text style={[styles.ongName, { color: titleColor }]}>{ong.nome}</Text>
             <View style={styles.locationRow}>
-              <AppIcon name="location_on" size={16} color={t.colors.muted} />
-              <Text style={styles.locationText}>{localizacao}</Text>
+              <AppIcon name="location_on" size={16} color={subtitleColor} />
+              <Text style={[styles.locationText, { color: subtitleColor }]}>{localizacao}</Text>
             </View>
           </View>
         </View>
 
         {/* 4) Card "Sobre Nós" */}
-        <View style={styles.aboutCard}>
+        <View style={[styles.aboutCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
           <View style={styles.aboutHeader}>
-            <AppIcon name="info" size={20} color={t.colors.tealDark} />
-            <Text style={styles.aboutTitle}>Sobre Nós</Text>
+            <AppIcon name="info" size={20} color={isDark ? '#05BCAA' : theme.colors.tealDark} />
+            <Text style={[styles.aboutTitle, { color: titleColor }]}>Sobre Nós</Text>
           </View>
-          <Text style={styles.aboutBody}>
+          <Text style={[styles.aboutBody, { color: textColor }]}>
             {ong.descricao?.trim() ||
               'Dedicamo-nos a transformar realidades e gerar impacto positivo através de ações solidárias, educação inovadora e capacitação comunitária.'}
           </Text>
@@ -219,7 +281,7 @@ export function OngDetailsScreen({ navigation, route }: Props) {
 
         {/* 5) Seção "Transparência e Impacto" */}
         <View style={styles.transparencySection}>
-          <Text style={styles.sectionHeading}>Transparência e Impacto</Text>
+          <Text style={[styles.sectionHeading, { color: titleColor }]}>Transparência e Impacto</Text>
 
           {campanhas.length > 0 ? (
             campanhas.map((campanha) => {
@@ -230,23 +292,29 @@ export function OngDetailsScreen({ navigation, route }: Props) {
               return (
                 <Pressable
                   key={campanha.id}
-                  style={({ pressed }) => [styles.impactCard, pressed && styles.cardPressed]}
+                  style={({ pressed }) => [
+                    styles.impactCard,
+                    { backgroundColor: cardBg, borderColor: cardBorder },
+                    pressed && styles.cardPressed,
+                  ]}
                   onPress={() => abrirModalDoacao(campanha.id)}
                 >
                   <View style={styles.impactCardHeader}>
-                    <Text style={styles.impactCardTitle} numberOfLines={1}>
+                    <Text style={[styles.impactCardTitle, { color: titleColor }]} numberOfLines={1}>
                       {campanha.titulo}
                     </Text>
-                    <Text style={styles.impactPercentage}>{percentual}% Atingido</Text>
+                    <Text style={[styles.impactPercentage, { color: isDark ? '#0AAEEE' : theme.colors.tealDark }]}>
+                      {percentual}% Atingido
+                    </Text>
                   </View>
 
                   {/* Barra de Progresso Laranja */}
-                  <View style={styles.progressTrack}>
+                  <View style={[styles.progressTrack, { backgroundColor: isDark ? '#262B35' : '#E0F2FE' }]}>
                     <View style={[styles.progressFill, { width: `${percentual}%` }]} />
                   </View>
 
                   {/* Detalhes do Valor */}
-                  <Text style={styles.impactDetails}>
+                  <Text style={[styles.impactDetails, { color: subtitleColor }]}>
                     {arrecadadoVal > 0 || metaVal > 0
                       ? `R$ ${arrecadadoVal.toLocaleString('pt-BR', {
                           minimumFractionDigits: 0,
@@ -261,11 +329,11 @@ export function OngDetailsScreen({ navigation, route }: Props) {
               );
             })
           ) : (
-            <View style={styles.impactCard}>
+            <View style={[styles.impactCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
               <View style={styles.impactCardHeader}>
-                <Text style={styles.impactCardTitle}>Transparência e Prestação de Contas</Text>
+                <Text style={[styles.impactCardTitle, { color: titleColor }]}>Transparência e Prestação de Contas</Text>
               </View>
-              <Text style={styles.impactDetails}>
+              <Text style={[styles.impactDetails, { color: subtitleColor }]}>
                 Esta ONG ainda não possui campanhas com metas financeiras abertas no momento.
               </Text>
             </View>
@@ -273,17 +341,17 @@ export function OngDetailsScreen({ navigation, route }: Props) {
         </View>
 
         {/* 6) Card de Depoimento / Citação */}
-        <View style={styles.quoteCard}>
-          <Text style={styles.quoteWatermark}>”</Text>
+        <View style={[styles.quoteCard, { backgroundColor: isDark ? '#0C233C' : '#003366' }]}>
+          <Text style={[styles.quoteWatermark, isDark && { color: 'rgba(56, 189, 248, 0.16)' }]}>”</Text>
           <Text style={styles.quoteText}>
             "Graças ao apoio contínuo, conseguimos oferecer um futuro promissor para centenas de jovens da nossa comunidade."
           </Text>
-          <Text style={styles.quoteAuthor}>— Maria Silva, Diretora</Text>
+          <Text style={[styles.quoteAuthor, { color: '#38BDF8' }]}>— Maria Silva, Diretora</Text>
         </View>
       </ScrollView>
 
       {/* 7) Barra Fixa Inferior de Ação (Sticky CTA) */}
-      <View style={styles.stickyBottom}>
+      <View style={[styles.stickyBottom, { backgroundColor: topBarBg, borderTopColor: topBarBorder }]}>
         <Pressable
           style={({ pressed }) => [styles.donateButton, pressed && styles.donateButtonPressed]}
           onPress={() => abrirModalDoacao()}
@@ -302,38 +370,50 @@ export function OngDetailsScreen({ navigation, route }: Props) {
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, isDark && { backgroundColor: 'rgba(0, 0, 0, 0.75)' }]}>
           <Pressable style={styles.modalBackdrop} onPress={() => setModalVisible(false)} />
-          <View style={styles.modalSheet}>
+          <View style={[styles.modalSheet, { backgroundColor: cardBg }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Fazer uma Doação</Text>
+              <Text style={[styles.modalTitle, { color: titleColor }]}>Fazer uma Doação</Text>
               <Pressable
                 onPress={() => setModalVisible(false)}
                 style={styles.modalCloseButton}
               >
-                <AppIcon name="close" size={22} color={t.colors.text} />
+                <AppIcon name="close" size={22} color={isDark ? '#CBD5E1' : theme.colors.text} />
               </Pressable>
             </View>
 
-            <Text style={styles.modalSubtitle}>
-              Destino: <Text style={styles.modalOngName}>{ong.nome}</Text>
+            <Text style={[styles.modalSubtitle, { color: subtitleColor }]}>
+              Destino: <Text style={[styles.modalOngName, { color: isDark ? '#05BCAA' : theme.colors.tealDark }]}>{ong.nome}</Text>
             </Text>
 
             {/* Seleção de Valor Predefinido */}
-            <Text style={styles.modalLabel}>Selecione o valor:</Text>
+            <Text style={[styles.modalLabel, { color: titleColor }]}>Selecione o valor:</Text>
             <View style={styles.presetsRow}>
               {VALORES_PREDEFINIDOS.map((val) => {
                 const isSelected = valorSelecionado === val && !valorCustomizado;
                 return (
                   <Pressable
                     key={val}
-                    style={[styles.presetChip, isSelected && styles.presetChipActive]}
+                    style={[
+                      styles.presetChip,
+                      {
+                        backgroundColor: isDark ? (isSelected ? '#0AAEEE' : '#262B35') : (isSelected ? '#E6F8F6' : '#F8FAFC'),
+                        borderColor: isDark ? (isSelected ? '#0AAEEE' : '#2E3543') : (isSelected ? theme.colors.tealDark : '#E2E8F0'),
+                      },
+                    ]}
                     onPress={() => {
                       setValorSelecionado(val);
                       setValorCustomizado('');
                     }}
                   >
-                    <Text style={[styles.presetText, isSelected && styles.presetTextActive]}>
+                    <Text
+                      style={[
+                        styles.presetText,
+                        { color: isDark ? '#FFFFFF' : (isSelected ? theme.colors.tealDark : '#334155') },
+                        isSelected && styles.presetTextActive,
+                      ]}
+                    >
                       R$ {val}
                     </Text>
                   </Pressable>
@@ -343,39 +423,58 @@ export function OngDetailsScreen({ navigation, route }: Props) {
 
             {/* Outro Valor */}
             <View style={styles.customValueRow}>
-              <Text style={styles.customValueLabel}>Ou digite outro valor:</Text>
-              <View style={styles.customInputContainer}>
-                <Text style={styles.currencyPrefix}>R$</Text>
+              <Text style={[styles.customValueLabel, { color: subtitleColor }]}>Ou digite outro valor:</Text>
+              <View
+                style={[
+                  styles.customInputContainer,
+                  {
+                    backgroundColor: isDark ? '#262B35' : '#F8FAFC',
+                    borderColor: isDark ? '#2E3543' : '#E2E8F0',
+                  },
+                ]}
+              >
+                <Text style={[styles.currencyPrefix, { color: subtitleColor }]}>R$</Text>
                 <TextInput
-                  style={styles.customInput}
+                  style={[styles.customInput, { color: isDark ? '#FFFFFF' : '#0A2540' }]}
                   placeholder="0,00"
                   keyboardType="numeric"
                   value={valorCustomizado}
                   onChangeText={(txt) => setValorCustomizado(txt)}
-                  placeholderTextColor={t.colors.muted}
+                  placeholderTextColor={isDark ? '#6B7280' : theme.colors.muted}
                 />
               </View>
             </View>
 
             {/* Forma de Pagamento */}
-            <Text style={styles.modalLabel}>Forma de Pagamento:</Text>
+            <Text style={[styles.modalLabel, { color: titleColor }]}>Forma de Pagamento:</Text>
             <View style={styles.paymentRow}>
               <Pressable
                 style={[
                   styles.paymentOption,
-                  formaPagamento === 'PIX' && styles.paymentOptionActive,
+                  {
+                    backgroundColor: isDark
+                      ? (formaPagamento === 'PIX' ? '#133835' : '#262B35')
+                      : (formaPagamento === 'PIX' ? '#E6F8F6' : '#F8FAFC'),
+                    borderColor: isDark
+                      ? (formaPagamento === 'PIX' ? '#0AAEEE' : '#2E3543')
+                      : (formaPagamento === 'PIX' ? theme.colors.tealDark : '#E2E8F0'),
+                  },
                 ]}
                 onPress={() => setFormaPagamento('PIX')}
               >
                 <AppIcon
                   name="qr_code_2"
                   size={20}
-                  color={formaPagamento === 'PIX' ? t.colors.tealDark : t.colors.muted}
+                  color={formaPagamento === 'PIX' ? (isDark ? '#0AAEEE' : theme.colors.tealDark) : subtitleColor}
                 />
                 <Text
                   style={[
                     styles.paymentOptionText,
-                    formaPagamento === 'PIX' && styles.paymentOptionTextActive,
+                    {
+                      color: formaPagamento === 'PIX'
+                        ? (isDark ? '#0AAEEE' : theme.colors.tealDark)
+                        : (isDark ? '#CBD5E1' : '#64748B'),
+                    },
                   ]}
                 >
                   PIX
@@ -385,19 +484,30 @@ export function OngDetailsScreen({ navigation, route }: Props) {
               <Pressable
                 style={[
                   styles.paymentOption,
-                  formaPagamento === 'CARTAO' && styles.paymentOptionActive,
+                  {
+                    backgroundColor: isDark
+                      ? (formaPagamento === 'CARTAO' ? '#133835' : '#262B35')
+                      : (formaPagamento === 'CARTAO' ? '#E6F8F6' : '#F8FAFC'),
+                    borderColor: isDark
+                      ? (formaPagamento === 'CARTAO' ? '#0AAEEE' : '#2E3543')
+                      : (formaPagamento === 'CARTAO' ? theme.colors.tealDark : '#E2E8F0'),
+                  },
                 ]}
                 onPress={() => setFormaPagamento('CARTAO')}
               >
                 <AppIcon
                   name="credit_card"
                   size={20}
-                  color={formaPagamento === 'CARTAO' ? t.colors.tealDark : t.colors.muted}
+                  color={formaPagamento === 'CARTAO' ? (isDark ? '#0AAEEE' : theme.colors.tealDark) : subtitleColor}
                 />
                 <Text
                   style={[
                     styles.paymentOptionText,
-                    formaPagamento === 'CARTAO' && styles.paymentOptionTextActive,
+                    {
+                      color: formaPagamento === 'CARTAO'
+                        ? (isDark ? '#0AAEEE' : theme.colors.tealDark)
+                        : (isDark ? '#CBD5E1' : '#64748B'),
+                    },
                   ]}
                 >
                   Cartão
@@ -428,6 +538,32 @@ export function OngDetailsScreen({ navigation, route }: Props) {
           </View>
         </View>
       </Modal>
+
+      {/* Modal Interativo do PIX com QR Code, Copia e Cola, Confirmação e Erro */}
+      <PixPaymentModal
+        visible={pixModalVisible}
+        valor={pixDados.valor}
+        ongNome={ong?.nome || 'ONG Social'}
+        campanhaTitulo={pixDados.campanhaTitulo}
+        copiaECola={pixDados.copiaECola}
+        qrCodeUrl={pixDados.qrCodeUrl}
+        doacaoId={pixDados.doacaoId}
+        onConfirmarPagamento={async () => {
+          if (pixDados.doacaoId) {
+            await confirmarDoacao(pixDados.doacaoId);
+          }
+        }}
+        onSimularAprovacao={async () => {
+          if (pixDados.doacaoId) {
+            await confirmarDoacao(pixDados.doacaoId);
+          }
+        }}
+        onFechar={() => setPixModalVisible(false)}
+        onDoacaoConcluida={() => {
+          setPixModalVisible(false);
+          navigation.navigate('Doacoes');
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -435,17 +571,14 @@ export function OngDetailsScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: t.colors.page,
   },
   topBar: {
     height: 56,
-    paddingHorizontal: t.spacing.md,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: t.colors.surface,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
   iconButton: {
     width: 42,
@@ -455,14 +588,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   topBarTitle: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 20,
     fontWeight: '800',
     letterSpacing: -0.3,
   },
   scrollContent: {
-    padding: t.spacing.md,
+    padding: 16,
     paddingBottom: 100,
   },
 
@@ -473,7 +605,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
     position: 'relative',
-    backgroundColor: t.colors.subtle,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -487,13 +618,11 @@ const styles = StyleSheet.create({
   bannerFallback: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E6F4F1',
   },
   categoryBadge: {
     position: 'absolute',
     bottom: 14,
     left: 14,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingVertical: 6,
     borderRadius: 20,
@@ -504,7 +633,6 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   categoryBadgeText: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',
@@ -522,9 +650,7 @@ const styles = StyleSheet.create({
     width: 62,
     height: 62,
     borderRadius: 31,
-    backgroundColor: '#FFFFFF',
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -542,7 +668,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   ongName: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 22,
     fontWeight: '800',
@@ -555,7 +680,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   locationText: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '500',
@@ -563,11 +687,9 @@ const styles = StyleSheet.create({
 
   /* Sobre Nós */
   aboutCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 18,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -582,13 +704,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   aboutTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 17,
     fontWeight: '800',
   },
   aboutBody: {
-    color: '#334155',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     lineHeight: 22,
@@ -600,19 +720,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sectionHeading: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 18,
     fontWeight: '800',
     marginBottom: 12,
   },
   impactCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -627,20 +744,17 @@ const styles = StyleSheet.create({
   },
   impactCardTitle: {
     flex: 1,
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     fontWeight: '700',
   },
   impactPercentage: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',
   },
   progressTrack: {
     height: 8,
-    backgroundColor: '#E0F2FE',
     borderRadius: 4,
     marginVertical: 10,
     overflow: 'hidden',
@@ -651,7 +765,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   impactDetails: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '500',
@@ -659,12 +772,11 @@ const styles = StyleSheet.create({
 
   /* Quote Card */
   quoteCard: {
-    backgroundColor: '#003366',
     borderRadius: 16,
     padding: 20,
     position: 'relative',
     overflow: 'hidden',
-    shadowColor: '#003366',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.16,
     shadowRadius: 10,
@@ -688,7 +800,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   quoteAuthor: {
-    color: '#38BDF8',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',
@@ -701,12 +812,10 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: Platform.OS === 'ios' ? 28 : 16,
     borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -3 },
     shadowOpacity: 0.08,
@@ -748,7 +857,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   modalSheet: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 22,
@@ -766,7 +874,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   modalTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 18,
     fontWeight: '800',
@@ -775,17 +882,14 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   modalSubtitle: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     marginBottom: 16,
   },
   modalOngName: {
-    color: t.colors.tealDark,
     fontWeight: '700',
   },
   modalLabel: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
@@ -801,29 +905,22 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  presetChipActive: {
-    borderColor: t.colors.tealDark,
-    backgroundColor: '#E6F8F6',
-  },
+  presetChipActive: {},
   presetText: {
-    color: '#334155',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
   },
   presetTextActive: {
-    color: t.colors.tealDark,
+    fontWeight: '800',
   },
   customValueRow: {
     marginBottom: 16,
   },
   customValueLabel: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     marginBottom: 6,
@@ -832,14 +929,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
     borderRadius: 12,
     paddingHorizontal: 14,
     height: 48,
-    backgroundColor: '#F8FAFC',
   },
   currencyPrefix: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     fontWeight: '700',
@@ -847,7 +941,6 @@ const styles = StyleSheet.create({
   },
   customInput: {
     flex: 1,
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     fontWeight: '700',
@@ -869,21 +962,12 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
-    backgroundColor: '#F8FAFC',
   },
-  paymentOptionActive: {
-    borderColor: t.colors.tealDark,
-    backgroundColor: '#E6F8F6',
-  },
+  paymentOptionActive: {},
   paymentOptionText: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
-  },
-  paymentOptionTextActive: {
-    color: t.colors.tealDark,
   },
   confirmDonateButton: {
     backgroundColor: '#05BCAA',
@@ -904,16 +988,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: t.spacing.xl,
+    padding: 32,
     gap: 12,
   },
   loadingText: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
   },
   errorTitle: {
-    color: t.colors.ink,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 16,
     fontWeight: '700',
@@ -923,7 +1005,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: t.colors.tealDark,
+    backgroundColor: '#05BCAA',
   },
   retryButtonText: {
     color: '#FFFFFF',
@@ -935,7 +1017,6 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   backLinkText: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '600',
@@ -948,4 +1029,3 @@ const styles = StyleSheet.create({
     transform: [{ scale: 0.99 }],
   },
 });
-

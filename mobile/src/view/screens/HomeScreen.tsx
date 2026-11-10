@@ -11,17 +11,19 @@ import {
 } from 'react-native';
 
 import { RootStackParamList } from '../../navigation/types';
-import { authTheme as t } from '../../theme/authTheme';
 import { CategoryCarousel } from '../components/CategoryCarousel';
 import { CampaignHighlightCard } from '../components/CampaignHighlightCard';
 import { HomeHeader } from '../components/HomeHeader';
 import { OngRecommendedCard } from '../components/OngRecommendedCard';
 import { SearchBar } from '../components/SearchBar';
 import { useHomeViewModel } from '../../viewmodel/useHomeViewModel';
+import { useTheme } from '../../theme/ThemeContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 export function HomeScreen(props: Props) {
+  const { isDark, theme } = useTheme();
+
   const {
     categorias,
     categoriasLoading,
@@ -48,8 +50,13 @@ export function HomeScreen(props: Props) {
     ? `ONGs em ${selectedCategoriaNome}`
     : 'ONGs Recomendadas';
 
+  const titleColor = isDark ? '#FFFFFF' : theme.colors.ink;
+  const seeAllColor = isDark ? '#0AAEEE' : theme.colors.brand;
+  const mutedColor = isDark ? '#9CA3AF' : theme.colors.muted;
+  const activeSpinnerColor = isDark ? '#05BCAA' : theme.colors.tealDark;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#111418' : theme.colors.page }]}>
       <HomeHeader />
       <ScrollView
         style={styles.body}
@@ -58,16 +65,16 @@ export function HomeScreen(props: Props) {
       >
         <SearchBar value={search} onChangeText={setSearch} />
 
-        <Text style={styles.sectionTitle}>Categorias</Text>
+        <Text style={[styles.sectionTitle, { color: titleColor }]}>Categorias</Text>
         {categoriasLoading ? (
           <View style={styles.categoryState}>
-            <ActivityIndicator color={t.colors.tealDark} />
+            <ActivityIndicator color={activeSpinnerColor} />
           </View>
         ) : categoriasError ? (
           <View style={styles.categoryState}>
-            <Text style={styles.error}>{categoriasError}</Text>
+            <Text style={[styles.error, { color: mutedColor }]}>{categoriasError}</Text>
             <Pressable onPress={() => void carregarCategorias()} accessibilityRole="button">
-              <Text style={styles.retry}>Tentar novamente</Text>
+              <Text style={[styles.retry, { color: seeAllColor }]}>Tentar novamente</Text>
             </Pressable>
           </View>
         ) : (
@@ -78,13 +85,13 @@ export function HomeScreen(props: Props) {
           />
         )}
 
-        <Text style={styles.sectionTitle}>Campanha em Destaque</Text>
+        <Text style={[styles.sectionTitle, { color: titleColor }]}>Campanha em Destaque</Text>
         {campanhaLoading ? (
           <View style={styles.contentState}>
-            <ActivityIndicator color={t.colors.tealDark} />
+            <ActivityIndicator color={activeSpinnerColor} />
           </View>
         ) : campanhaError ? (
-          <Text style={styles.error}>{campanhaError}</Text>
+          <Text style={[styles.error, { color: mutedColor }]}>{campanhaError}</Text>
         ) : campanhaDestaque ? (
           <CampaignHighlightCard
             campanha={campanhaDestaque}
@@ -93,28 +100,28 @@ export function HomeScreen(props: Props) {
             }
           />
         ) : (
-          <Text style={styles.empty}>Nenhuma campanha ativa no momento.</Text>
+          <Text style={[styles.empty, { color: mutedColor }]}>Nenhuma campanha ativa no momento.</Text>
         )}
 
         <View style={styles.ongsHeading}>
-          <Text style={styles.sectionTitle}>{tituloSecaoOngs}</Text>
+          <Text style={[styles.sectionTitle, { color: titleColor }]}>{tituloSecaoOngs}</Text>
           <Pressable
             onPress={() => props.navigation.navigate('Favoritos')}
             accessibilityRole="button"
           >
-            <Text style={styles.seeAll}>Ver Favoritas</Text>
+            <Text style={[styles.seeAll, { color: seeAllColor }]}>Ver Favoritas</Text>
           </Pressable>
         </View>
 
         {ongsLoading ? (
           <View style={styles.contentState}>
-            <ActivityIndicator color={t.colors.tealDark} />
+            <ActivityIndicator color={activeSpinnerColor} />
           </View>
         ) : ongsError ? (
-          <Text style={styles.error}>{ongsError}</Text>
+          <Text style={[styles.error, { color: mutedColor }]}>{ongsError}</Text>
         ) : ongsRecomendadas.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.empty}>
+            <Text style={[styles.empty, { color: mutedColor }]}>
               {search.trim()
                 ? `Nenhuma ONG encontrada para "${search.trim()}".`
                 : selectedCategoriaNome
@@ -127,9 +134,19 @@ export function HomeScreen(props: Props) {
                   selecionarCategoria(null);
                   setSearch('');
                 }}
-                style={styles.clearFilterButton}
+                style={[
+                  styles.clearFilterButton,
+                  { backgroundColor: isDark ? '#0D3331' : theme.colors.activeSurface },
+                ]}
               >
-                <Text style={styles.clearFilterText}>Limpar filtros</Text>
+                <Text
+                  style={[
+                    styles.clearFilterText,
+                    { color: isDark ? '#05BCAA' : theme.colors.tealDark },
+                  ]}
+                >
+                  Limpar filtros
+                </Text>
               </Pressable>
             )}
           </View>
@@ -152,20 +169,19 @@ export function HomeScreen(props: Props) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: t.colors.page },
+  safeArea: { flex: 1 },
   body: { flex: 1 },
   content: {
-    paddingTop: t.spacing.lg,
-    paddingHorizontal: t.spacing.lg,
-    paddingBottom: t.spacing.xl,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 32,
   },
   sectionTitle: {
-    color: t.colors.ink,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 20,
     fontWeight: '700',
-    marginTop: t.spacing.xl,
-    marginBottom: t.spacing.md,
+    marginTop: 28,
+    marginBottom: 14,
   },
   categoryState: {
     minHeight: 56,
@@ -183,14 +199,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   seeAll: {
-    marginBottom: t.spacing.md,
-    color: t.colors.brand,
+    marginBottom: 14,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
   },
   ongSpacing: {
-    marginBottom: t.spacing.lg,
+    marginBottom: 20,
   },
   emptyContainer: {
     minHeight: 120,
@@ -200,7 +215,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   empty: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     textAlign: 'center',
@@ -208,26 +222,21 @@ const styles = StyleSheet.create({
   clearFilterButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: t.radius.pill,
-    backgroundColor: t.colors.activeSurface,
+    borderRadius: 999,
   },
   clearFilterText: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',
   },
   error: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
   },
   retry: {
-    color: t.colors.brand,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',
     marginTop: 6,
   },
 });
-

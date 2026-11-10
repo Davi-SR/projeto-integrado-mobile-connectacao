@@ -37,6 +37,12 @@ public class Doacao {
     @Column(name = "data_doacao")
     private LocalDateTime dataDoacao;
 
+    @Transient
+    private String pixCopiaECola;
+
+    @Transient
+    private String pixQrCodeUrl;
+
     public Doacao() {
     }
 
@@ -102,5 +108,21 @@ public class Doacao {
 
     public void setDataDoacao(LocalDateTime dataDoacao) {
         this.dataDoacao = dataDoacao;
+    }
+
+    public String getPixCopiaECola() {
+        return pixCopiaECola;
+    }
+
+    public void setPixCopiaECola(String pixCopiaECola) {
+        this.pixCopiaECola = pixCopiaECola;
+    }
+
+    public String getPixQrCodeUrl() {
+        return pixQrCodeUrl;
+    }
+
+    public void setPixQrCodeUrl(String pixQrCodeUrl) {
+        this.pixQrCodeUrl = pixQrCodeUrl;
     }
 }

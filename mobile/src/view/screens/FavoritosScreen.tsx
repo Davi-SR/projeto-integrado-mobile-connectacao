@@ -14,16 +14,18 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Categoria } from '../../model/entities/Categoria';
 import { CategoriaRepository } from '../../model/repositories/CategoriaRepository';
 import { RootStackParamList } from '../../navigation/types';
-import { authTheme as t } from '../../theme/authTheme';
 import { useFavoritosViewModel } from '../../viewmodel/useFavoritosViewModel';
 import { useDrawer } from '../../viewmodel/DrawerContext';
 import { OngRecommendedCard } from '../components/OngRecommendedCard';
 import { AppIcon } from '../components/HomeIcons';
+import { useTheme } from '../../theme/ThemeContext';
+
 type Navigation = NativeStackNavigationProp<RootStackParamList>;
 
 export function FavoritosScreen() {
     const navigation = useNavigation<Navigation>();
     const { openDrawer } = useDrawer();
+    const { isDark, theme } = useTheme();
 
     const {
         favoritos,
@@ -59,9 +61,16 @@ export function FavoritosScreen() {
         }
     }
 
+    const pageBg = isDark ? '#111418' : theme.colors.page;
+    const headerBg = isDark ? '#121418' : theme.colors.surface;
+    const borderColor = isDark ? '#242A35' : theme.colors.line;
+    const titleColor = isDark ? '#FFFFFF' : theme.colors.ink;
+    const subtitleColor = isDark ? '#9CA3AF' : theme.colors.text;
+    const primaryTeal = isDark ? '#05BCAA' : theme.colors.tealDark;
+
     return (
-        <View style={styles.container}>
-            <View style={styles.header}>
+        <View style={[styles.container, { backgroundColor: pageBg }]}>
+            <View style={[styles.header, { backgroundColor: headerBg, borderBottomColor: borderColor }]}>
                 <Pressable
                     accessibilityRole="button"
                     accessibilityLabel="Abrir menu"
@@ -71,18 +80,18 @@ export function FavoritosScreen() {
                         pressed && styles.pressed,
                     ]}
                 >
-                    <AppIcon name="menu" size={28} color={t.colors.ink} />
+                    <AppIcon name="menu" size={28} color={primaryTeal} />
                 </Pressable>
 
-                <Text style={styles.title}>ONGs Favoritas</Text>
+                <Text style={[styles.title, { color: titleColor }]}>ONGs Favoritas</Text>
 
                 <View style={styles.headerSpacer} />
             </View>
 
             {isLoading ? (
                 <View style={styles.center}>
-                    <ActivityIndicator size="large" color={t.colors.brand} />
-                    <Text style={styles.message}>Carregando favoritas...</Text>
+                    <ActivityIndicator size="large" color={primaryTeal} />
+                    <Text style={[styles.message, { color: subtitleColor }]}>Carregando favoritas...</Text>
                 </View>
             ) : error ? (
                 <View style={styles.center}>
@@ -92,6 +101,7 @@ export function FavoritosScreen() {
                         onPress={() => void carregarFavoritos()}
                         style={({ pressed }) => [
                             styles.retryButton,
+                            { backgroundColor: primaryTeal },
                             pressed && styles.pressed,
                         ]}
                     >
@@ -103,14 +113,14 @@ export function FavoritosScreen() {
                     <AppIcon
                         name="favorite_border"
                         size={54}
-                        color={t.colors.inputBorder}
+                        color={isDark ? '#2E3543' : theme.colors.inputBorder}
                     />
 
-                    <Text style={styles.emptyTitle}>
+                    <Text style={[styles.emptyTitle, { color: titleColor }]}>
                         Nenhuma ONG favorita
                     </Text>
 
-                    <Text style={styles.message}>
+                    <Text style={[styles.message, { color: subtitleColor }]}>
                         As ONGs que você favoritar aparecerão aqui.
                     </Text>
                 </View>
@@ -121,10 +131,12 @@ export function FavoritosScreen() {
                         <RefreshControl
                             refreshing={refreshing}
                             onRefresh={() => void atualizar()}
+                            tintColor={primaryTeal}
+                            colors={[primaryTeal]}
                         />
                     }
                 >
-                    <Text style={styles.subtitle}>
+                    <Text style={[styles.subtitle, { color: titleColor }]}>
                         Suas causas favoritas
                     </Text>
 
@@ -153,18 +165,15 @@ export function FavoritosScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: t.colors.page,
     },
 
     header: {
         minHeight: 88,
         paddingTop: 32,
-        paddingHorizontal: t.spacing.md,
+        paddingHorizontal: 16,
         flexDirection: 'row',
         alignItems: 'center',
         borderBottomWidth: 1,
-        borderBottomColor: t.colors.line,
-        backgroundColor: t.colors.surface,
     },
 
     menuButton: {
@@ -172,13 +181,12 @@ const styles = StyleSheet.create({
         height: 48,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: t.radius.pill,
+        borderRadius: 999,
     },
 
     title: {
         flex: 1,
         textAlign: 'center',
-        color: t.colors.ink,
         fontFamily: 'Plus Jakarta Sans',
         fontSize: 20,
         fontWeight: '800',
@@ -189,20 +197,19 @@ const styles = StyleSheet.create({
     },
 
     content: {
-        padding: t.spacing.lg,
+        padding: 24,
         paddingBottom: 40,
     },
 
     subtitle: {
-        marginBottom: t.spacing.lg,
-        color: t.colors.ink,
+        marginBottom: 20,
         fontFamily: 'Plus Jakarta Sans',
         fontSize: 22,
         fontWeight: '800',
     },
 
     cards: {
-        gap: t.spacing.lg,
+        gap: 20,
     },
 
     center: {
@@ -213,8 +220,7 @@ const styles = StyleSheet.create({
     },
 
     emptyTitle: {
-        marginTop: t.spacing.md,
-        color: t.colors.ink,
+        marginTop: 14,
         fontFamily: 'Plus Jakarta Sans',
         fontSize: 20,
         fontWeight: '800',
@@ -222,8 +228,7 @@ const styles = StyleSheet.create({
     },
 
     message: {
-        marginTop: t.spacing.sm,
-        color: t.colors.text,
+        marginTop: 10,
         fontFamily: 'Plus Jakarta Sans',
         fontSize: 15,
         lineHeight: 22,
@@ -231,7 +236,7 @@ const styles = StyleSheet.create({
     },
 
     error: {
-        color: t.colors.error,
+        color: '#EF4444',
         fontFamily: 'Plus Jakarta Sans',
         fontSize: 16,
         fontWeight: '600',
@@ -240,16 +245,15 @@ const styles = StyleSheet.create({
 
     retryButton: {
         minHeight: 48,
-        marginTop: t.spacing.lg,
-        paddingHorizontal: t.spacing.xl,
+        marginTop: 20,
+        paddingHorizontal: 28,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: t.radius.button,
-        backgroundColor: t.colors.brand,
+        borderRadius: 14,
     },
 
     retryText: {
-        color: t.colors.surface,
+        color: '#FFFFFF',
         fontFamily: 'Plus Jakarta Sans',
         fontSize: 15,
         fontWeight: '800',

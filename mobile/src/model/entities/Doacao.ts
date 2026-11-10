@@ -9,4 +9,6 @@ export type Doacao = {
   formaPagamento: FormaPagamento;
   status: StatusDoacao;
   dataDoacao: string;
+  pixCopiaECola?: string;
+  pixQrCodeUrl?: string;
 };

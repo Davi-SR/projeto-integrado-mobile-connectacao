@@ -1,62 +1,118 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { authTheme as t } from '../../theme/authTheme';
-import { DoacaoRecenteItem } from '../../viewmodel/useDoacoesViewModel';
+import { useTheme } from '../../theme/ThemeContext';
+import { DoacaoRecenteItem, ModoFiltro } from '../../viewmodel/useDoacoesViewModel';
+import { obterTituloPeriodo } from '../../services/relatorioPdfService';
 import { AppIcon, DonationIcon } from './HomeIcons';
 
 type Props = {
   doacoes: DoacaoRecenteItem[];
   onVerHistorico?: () => void;
   onExplorarCampanhas?: () => void;
+  modoFiltro?: ModoFiltro;
+  anoSelecionado?: number;
+  mesSelecionado?: number;
+  onBaixarRelatorio?: () => void;
+  isBaixandoRelatorio?: boolean;
 };
 
 export function DoacoesRecentesSection({
   doacoes,
   onVerHistorico,
   onExplorarCampanhas,
+  modoFiltro = 'meses',
+  anoSelecionado = 2026,
+  mesSelecionado = 0,
+  onBaixarRelatorio,
+  isBaixandoRelatorio = false,
 }: Props) {
   const [imageErrors, setImageErrors] = React.useState<Record<number, boolean>>({});
+  const { isDark, theme } = useTheme();
 
   const handleImageError = (id: number) => {
     setImageErrors((prev) => ({ ...prev, [id]: true }));
   };
 
+  const titleColor = isDark ? '#FFFFFF' : '#0A2540';
+  const seeAllColor = isDark ? '#0AAEEE' : t.colors.tealDark;
+  const cardBg = isDark ? '#1A1D24' : theme.colors.surface;
+  const borderColor = isDark ? '#242A35' : '#F1F5F9';
+  const subtitleColor = isDark ? '#9CA3AF' : '#64748B';
+
+  const tituloRelatorio = obterTituloPeriodo(modoFiltro, anoSelecionado, mesSelecionado);
+  const rotuloBotao = tituloRelatorio.rotuloBotao;
+
+  const renderBotaoRelatorio = () => (
+    <Pressable
+      style={({ pressed }) => [
+        styles.reportButton,
+        {
+          backgroundColor: cardBg,
+          borderColor,
+        },
+        isBaixandoRelatorio && { opacity: 0.65 },
+        pressed && !isBaixandoRelatorio && styles.pressed,
+      ]}
+      onPress={onBaixarRelatorio}
+      disabled={isBaixandoRelatorio}
+      accessibilityRole="button"
+      accessibilityLabel={rotuloBotao}
+    >
+      {isBaixandoRelatorio ? (
+        <ActivityIndicator size="small" color={isDark ? '#0AAEEE' : t.colors.brand} />
+      ) : (
+        <AppIcon name="download" size={18} color={isDark ? '#0AAEEE' : t.colors.brand} />
+      )}
+      <Text style={[styles.reportButtonText, { color: isDark ? '#CBD5E1' : t.colors.brand }]}>
+        {isBaixandoRelatorio ? 'Gerando Relatório PDF...' : rotuloBotao}
+      </Text>
+    </Pressable>
+  );
+
   return (
     <View style={styles.section}>
       {/* Cabeçalho da Seção */}
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>Doações Recentes</Text>
+        <Text style={[styles.sectionTitle, { color: titleColor }]}>Doações Recentes</Text>
         {doacoes.length > 0 && (
           <Pressable
             onPress={onVerHistorico}
             accessibilityRole="button"
             style={({ pressed }) => [styles.seeAllButton, pressed && styles.pressed]}
           >
-            <Text style={styles.seeAllText}>VER HISTÓRICO</Text>
+            <Text style={[styles.seeAllText, { color: seeAllColor }]}>VER HISTÓRICO</Text>
           </Pressable>
         )}
       </View>
 
       {/* Lista de Doações Recentes */}
       {doacoes.length === 0 ? (
-        <View style={styles.emptyCard}>
-          <View style={styles.emptyIconCircle}>
-            <AppIcon name="volunteer_activism" size={32} color={t.colors.tealDark} />
+        <View style={styles.list}>
+          <View style={[styles.emptyCard, { backgroundColor: cardBg, borderColor }]}>
+            <View style={[styles.emptyIconCircle, { backgroundColor: isDark ? '#0D3331' : '#E6F8F6' }]}>
+              <AppIcon name="volunteer_activism" size={32} color={isDark ? '#05BCAA' : t.colors.tealDark} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: titleColor }]}>Nenhuma doação no histórico</Text>
+            <Text style={[styles.emptyMessage, { color: subtitleColor }]}>
+              As doações que você realizar para campanhas sociais ficarão salvas e listadas aqui.
+            </Text>
+            {onExplorarCampanhas && (
+              <Pressable
+                style={({ pressed }) => [
+                  styles.exploreButton,
+                  { backgroundColor: isDark ? '#0D3331' : t.colors.activeSurface },
+                  pressed && styles.pressed,
+                ]}
+                onPress={onExplorarCampanhas}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.exploreButtonText, { color: isDark ? '#05BCAA' : t.colors.tealDark }]}>Explorar Causas</Text>
+              </Pressable>
+            )}
           </View>
-          <Text style={styles.emptyTitle}>Nenhuma doação no histórico</Text>
-          <Text style={styles.emptyMessage}>
-            As doações que você realizar para campanhas sociais ficarão salvas e listadas aqui.
-          </Text>
-          {onExplorarCampanhas && (
-            <Pressable
-              style={({ pressed }) => [styles.exploreButton, pressed && styles.pressed]}
-              onPress={onExplorarCampanhas}
-              accessibilityRole="button"
-            >
-              <Text style={styles.exploreButtonText}>Explorar Causas</Text>
-            </Pressable>
-          )}
+          {onBaixarRelatorio && renderBotaoRelatorio()}
         </View>
       ) : (
         <View style={styles.list}>
@@ -64,9 +120,9 @@ export function DoacoesRecentesSection({
             const hasValidImage = Boolean(item.imagemUrl && !imageErrors[item.id]);
 
             return (
-              <View key={item.id} style={styles.donationCard}>
+              <View key={item.id} style={[styles.donationCard, { backgroundColor: cardBg, borderColor }]}>
                 {/* Ícone / Imagem da ONG */}
-                <View style={styles.imageWrapper}>
+                <View style={[styles.imageWrapper, { backgroundColor: isDark ? '#262B35' : '#F3F4F6' }]}>
                   {hasValidImage && item.imagemUrl ? (
                     <Image
                       source={{ uri: item.imagemUrl }}
@@ -76,36 +132,36 @@ export function DoacoesRecentesSection({
                     />
                   ) : (
                     <View style={styles.fallbackIcon}>
-                      <DonationIcon active />
+                      <DonationIcon active color={isDark ? '#05BCAA' : t.colors.tealDark} />
                     </View>
                   )}
                 </View>
 
                 {/* Informações da Doação: Título e Data */}
                 <View style={styles.infoWrapper}>
-                  <Text numberOfLines={1} style={styles.donationTitle}>
+                  <Text numberOfLines={1} style={[styles.donationTitle, { color: titleColor }]}>
                     {item.titulo}
                   </Text>
-                  <Text style={styles.donationDate}>{item.dataFormatada}</Text>
+                  <Text style={[styles.donationDate, { color: subtitleColor }]}>{item.dataFormatada}</Text>
                 </View>
 
                 {/* Valor e Badge de Status */}
                 <View style={styles.valueWrapper}>
-                  <Text style={styles.donationValue}>{item.valorFormatado}</Text>
+                  <Text style={[styles.donationValue, { color: titleColor }]}>{item.valorFormatado}</Text>
                   <View
                     style={[
                       styles.statusBadge,
-                      item.statusColor === 'concluida' && styles.statusBadgeSuccess,
-                      item.statusColor === 'pendente' && styles.statusBadgePending,
-                      item.statusColor === 'cancelada' && styles.statusBadgeError,
+                      item.statusColor === 'concluida' && (isDark ? styles.statusBadgeSuccessDark : styles.statusBadgeSuccess),
+                      item.statusColor === 'pendente' && (isDark ? styles.statusBadgePendingDark : styles.statusBadgePending),
+                      item.statusColor === 'cancelada' && (isDark ? styles.statusBadgeErrorDark : styles.statusBadgeError),
                     ]}
                   >
                     <Text
                       style={[
                         styles.statusBadgeText,
-                        item.statusColor === 'concluida' && styles.statusTextSuccess,
-                        item.statusColor === 'pendente' && styles.statusTextPending,
-                        item.statusColor === 'cancelada' && styles.statusTextError,
+                        item.statusColor === 'concluida' && (isDark ? { color: '#05BCAA' } : styles.statusTextSuccess),
+                        item.statusColor === 'pendente' && (isDark ? { color: '#FB6407' } : styles.statusTextPending),
+                        item.statusColor === 'cancelada' && (isDark ? { color: '#EF4444' } : styles.statusTextError),
                       ]}
                     >
                       {item.statusLabel}
@@ -116,16 +172,8 @@ export function DoacoesRecentesSection({
             );
           })}
 
-          {/* Botão de Download de Relatório (como no design) */}
-          <Pressable
-            style={({ pressed }) => [styles.reportButton, pressed && styles.pressed]}
-            onPress={() => undefined}
-            accessibilityRole="button"
-            accessibilityLabel="Baixar Relatório Anual"
-          >
-            <AppIcon name="download" size={18} color={t.colors.brand} />
-            <Text style={styles.reportButtonText}>Baixar Relatório Anual</Text>
-          </Pressable>
+          {/* Botão de Download de Relatório */}
+          {onBaixarRelatorio && renderBotaoRelatorio()}
         </View>
       )}
     </View>
@@ -144,102 +192,98 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   sectionTitle: {
-    color: t.colors.brand,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
   seeAllButton: {
     paddingVertical: 4,
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
   },
   seeAllText: {
-    color: t.colors.cyan,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 0.4,
+    fontWeight: '800',
+    letterSpacing: 0.5,
   },
   list: {
     gap: 12,
   },
   donationCard: {
-    backgroundColor: t.colors.surface,
-    borderRadius: 20,
-    padding: 16,
+    borderRadius: 18,
+    padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: t.colors.brand,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
     borderWidth: 1,
-    borderColor: t.colors.line,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 2,
+    gap: 12,
   },
   imageWrapper: {
     width: 48,
     height: 48,
     borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: t.colors.subtle,
-    borderWidth: 1,
-    borderColor: t.colors.line,
-    marginRight: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   ongImage: {
     width: '100%',
     height: '100%',
   },
   fallbackIcon: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: t.colors.activeSurface,
   },
   infoWrapper: {
     flex: 1,
-    justifyContent: 'center',
+    gap: 2,
   },
   donationTitle: {
-    color: t.colors.ink,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     fontWeight: '700',
-    lineHeight: 20,
   },
   donationDate: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
-    fontSize: 12.5,
+    fontSize: 12,
     fontWeight: '500',
-    marginTop: 3,
   },
   valueWrapper: {
     alignItems: 'flex-end',
-    justifyContent: 'center',
-    marginLeft: 10,
+    gap: 4,
   },
   donationValue: {
-    color: t.colors.ink,
     fontFamily: 'Plus Jakarta Sans',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '800',
   },
   statusBadge: {
-    marginTop: 4,
-    paddingHorizontal: 9,
+    paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: t.radius.pill,
+    borderRadius: 6,
   },
   statusBadgeSuccess: {
-    backgroundColor: '#E6F8F6',
+    backgroundColor: '#ECFDF5',
+  },
+  statusBadgeSuccessDark: {
+    backgroundColor: '#0D3331',
   },
   statusBadgePending: {
-    backgroundColor: '#FFF0E5',
+    backgroundColor: '#FFFBEB',
+  },
+  statusBadgePendingDark: {
+    backgroundColor: '#382806',
   },
   statusBadgeError: {
-    backgroundColor: '#FFF0F0',
+    backgroundColor: '#FEF2F2',
+  },
+  statusBadgeErrorDark: {
+    backgroundColor: '#2D1616',
   },
   statusBadgeText: {
     fontFamily: 'Plus Jakarta Sans',
@@ -248,84 +292,63 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   statusTextSuccess: {
-    color: t.colors.tealDark,
+    color: '#059669',
   },
   statusTextPending: {
-    color: t.colors.orange,
+    color: '#D97706',
   },
   statusTextError: {
-    color: t.colors.error,
+    color: '#DC2626',
   },
   reportButton: {
-    marginTop: 6,
+    minHeight: 50,
+    borderRadius: 14,
+    borderWidth: 1.5,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: t.colors.surface,
-    borderRadius: t.radius.card,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: t.colors.line,
-    shadowColor: t.colors.brand,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    marginTop: 4,
   },
   reportButtonText: {
-    color: t.colors.brand,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
   },
   emptyCard: {
-    backgroundColor: t.colors.surface,
-    borderRadius: t.radius.card,
+    borderRadius: 18,
     padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: t.colors.line,
-    shadowColor: t.colors.brand,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    elevation: 2,
+    gap: 10,
   },
   emptyIconCircle: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: t.colors.activeSurface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 12,
+    marginBottom: 4,
   },
   emptyTitle: {
-    color: t.colors.ink,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 16,
     fontWeight: '700',
-    textAlign: 'center',
-    marginBottom: 6,
   },
   emptyMessage: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
-    lineHeight: 19,
     textAlign: 'center',
-    marginBottom: 16,
+    lineHeight: 18,
   },
   exploreButton: {
-    backgroundColor: t.colors.tealDark,
-    paddingHorizontal: 20,
+    marginTop: 6,
+    paddingHorizontal: 18,
     paddingVertical: 10,
-    borderRadius: t.radius.button,
+    borderRadius: 999,
   },
   exploreButtonText: {
-    color: '#FFFFFF',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',

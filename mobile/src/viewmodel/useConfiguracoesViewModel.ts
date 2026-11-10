@@ -3,13 +3,15 @@ import * as ImagePicker from 'expo-image-picker';
 
 import { UsuarioRepository } from '../model/repositories/UsuarioRepository';
 import { useAuth } from './AuthContext';
+import { useTheme } from '../theme/ThemeContext';
 
 export function useConfiguracoesViewModel() {
   const { user, signOut, atualizarUsuarioState } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   // Preferências
   const [notificacoesCampanhas, setNotificacoesCampanhas] = useState<boolean>(true);
-  const [temaEscuro, setTemaEscuro] = useState<boolean>(false);
+  const temaEscuro = isDark;
 
   // Estados dos Modais
   const [modalEditarPerfilVisible, setModalEditarPerfilVisible] = useState(false);
@@ -41,8 +43,8 @@ export function useConfiguracoesViewModel() {
   }, []);
 
   const toggleTemaEscuro = useCallback(() => {
-    setTemaEscuro((prev) => !prev);
-  }, []);
+    toggleTheme();
+  }, [toggleTheme]);
 
   const selecionarFotoDaGaleria = useCallback(async () => {
     try {

@@ -196,18 +196,19 @@ export function AppIcon({ name, size = 22, color = t.colors.tealDark, filled = f
   return <MaterialIcon name={name} size={size} color={color} />;
 }
 
-export function MenuIcon() { return <MaterialIcon name="menu" size={25} />; }
-export function BellIcon() { return <MaterialIcon name="notifications" size={26} />; }
-export function SearchIcon() { return <MaterialIcon name="search" size={23} color={t.colors.text} />; }
-export function FilterIcon() { return <MaterialIcon name="tune" size={22} />; }
-export function HomeIcon({ active = false }: { active?: boolean }) { return <MaterialIcon name="home" size={24} color={active ? t.colors.tealDark : t.colors.muted} />; }
-export function DonationIcon({ active = false }: { active?: boolean }) { return <MaterialIcon name="volunteer_activism" size={24} color={active ? t.colors.tealDark : t.colors.muted} />; }
-export function PersonIcon({ active = false }: { active?: boolean }) { return <MaterialIcon name="person" size={24} color={active ? t.colors.tealDark : t.colors.muted} />; }
-export function GlobeIcon({ size = 20, color = '#FFFFFF' }: { size?: number; color?: string }) { return <MaterialIcon name="public" size={size} color={color} />; }
+export function MenuIcon({ color = t.colors.tealDark }: { color?: string } = {}) { return <MaterialIcon name="menu" size={25} color={color} />; }
+export function BellIcon({ color = t.colors.tealDark }: { color?: string } = {}) { return <MaterialIcon name="notifications" size={26} color={color} />; }
+export function SearchIcon({ color = t.colors.text }: { color?: string } = {}) { return <MaterialIcon name="search" size={23} color={color} />; }
+export function FilterIcon({ color = t.colors.tealDark }: { color?: string } = {}) { return <MaterialIcon name="tune" size={22} color={color} />; }
+export function HomeIcon({ active = false, color }: { active?: boolean; color?: string }) { return <MaterialIcon name="home" size={24} color={color ?? (active ? t.colors.tealDark : t.colors.muted)} />; }
+export function DonationIcon({ active = false, color }: { active?: boolean; color?: string }) { return <MaterialIcon name="volunteer_activism" size={24} color={color ?? (active ? t.colors.tealDark : t.colors.muted)} />; }
+export function PersonIcon({ active = false, color }: { active?: boolean; color?: string }) { return <MaterialIcon name="person" size={24} color={color ?? (active ? t.colors.tealDark : t.colors.muted)} />; }
+export function GlobeIcon({ size = 20, color = '#FFFFFF' }: { size?: number; color?: string } = {}) { return <MaterialIcon name="public" size={size} color={color} />; }
 
-export function CategoryIcon({ type }: { type: 'all' | 'environment' | 'education' | 'health' | 'community' | 'default' }) {
+export function CategoryIcon({ type, color }: { type: 'all' | 'environment' | 'education' | 'health' | 'community' | 'default'; color?: string }) {
   const names = { all: 'apps', environment: 'nature', education: 'school', health: 'health_and_safety', community: 'groups', default: 'category' } as const;
-  return <MaterialIcon name={names[type]} size={21} color={type === 'environment' || type === 'all' ? t.colors.tealDark : t.colors.text} />;
+  const defaultColor = type === 'environment' || type === 'all' ? t.colors.tealDark : t.colors.text;
+  return <MaterialIcon name={names[type]} size={21} color={color ?? defaultColor} />;
 }
 
 const styles = StyleSheet.create({

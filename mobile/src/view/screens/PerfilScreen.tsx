@@ -13,13 +13,13 @@ import {
 } from 'react-native';
 
 import { RootStackParamList } from '../../navigation/types';
-import { authTheme as t } from '../../theme/authTheme';
 import { HomeHeader } from '../components/HomeHeader';
 import { AppIcon } from '../components/HomeIcons';
 import {
   OngApoiadaItem,
   usePerfilViewModel,
 } from '../../viewmodel/usePerfilViewModel';
+import { useTheme } from '../../theme/ThemeContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Perfil'>;
 
@@ -31,16 +31,24 @@ function OngApoiadaCard({
   onPress: () => void;
 }) {
   const [imageFailed, setImageFailed] = React.useState(false);
+  const { isDark, theme } = useTheme();
 
   return (
     <Pressable
-      style={({ pressed }) => [styles.ongCard, pressed && styles.cardPressed]}
+      style={({ pressed }) => [
+        styles.ongCard,
+        {
+          backgroundColor: isDark ? '#1A1D24' : theme.colors.surface,
+          borderColor: isDark ? '#242A35' : '#F1F5F9',
+        },
+        pressed && styles.cardPressed,
+      ]}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`Ver perfil de ${ong.nome}`}
     >
       {/* Banner com Badge de Categoria */}
-      <View style={styles.cardBannerContainer}>
+      <View style={[styles.cardBannerContainer, { backgroundColor: isDark ? '#262B35' : theme.colors.subtle }]}>
         {ong.imagemUrl && !imageFailed ? (
           <Image
             source={{ uri: ong.imagemUrl }}
@@ -49,28 +57,35 @@ function OngApoiadaCard({
             resizeMode="cover"
           />
         ) : (
-          <View style={[styles.cardBannerImage, styles.cardBannerFallback]}>
-            <AppIcon name="volunteer_activism" size={36} color={t.colors.tealDark} />
+          <View style={[styles.cardBannerImage, styles.cardBannerFallback, { backgroundColor: isDark ? '#262B35' : '#E6F4F1' }]}>
+            <AppIcon name="volunteer_activism" size={36} color={isDark ? '#05BCAA' : theme.colors.tealDark} />
           </View>
         )}
 
-        <View style={styles.categoryPill}>
-          <Text style={styles.categoryPillText}>{ong.categoriaNome}</Text>
+        <View style={[styles.categoryPill, { backgroundColor: isDark ? '#0D3331' : '#FFFFFF' }]}>
+          <Text style={[styles.categoryPillText, { color: isDark ? '#05BCAA' : theme.colors.tealDark }]}>
+            {ong.categoriaNome}
+          </Text>
         </View>
       </View>
 
       {/* Conteúdo do Card */}
       <View style={styles.cardBody}>
-        <Text style={styles.cardOngName} numberOfLines={1}>
+        <Text
+          style={[styles.cardOngName, { color: isDark ? '#FFFFFF' : '#0A2540' }]}
+          numberOfLines={1}
+        >
           {ong.nome}
         </Text>
 
         <View style={styles.progressHeaderRow}>
-          <Text style={styles.progressLabel}>Progresso da meta</Text>
+          <Text style={[styles.progressLabel, { color: isDark ? '#9CA3AF' : '#64748B' }]}>
+            Progresso da meta
+          </Text>
           <Text style={styles.progressPercentage}>{ong.progressoMeta}%</Text>
         </View>
 
-        <View style={styles.progressTrack}>
+        <View style={[styles.progressTrack, { backgroundColor: isDark ? '#262B35' : '#E0F2FE' }]}>
           <View style={[styles.progressFill, { width: `${ong.progressoMeta}%` }]} />
         </View>
       </View>
@@ -79,6 +94,8 @@ function OngApoiadaCard({
 }
 
 export function PerfilScreen({ navigation }: Props) {
+  const { isDark, theme } = useTheme();
+
   const {
     user,
     primeiroNome,
@@ -91,8 +108,12 @@ export function PerfilScreen({ navigation }: Props) {
     recarregar,
   } = usePerfilViewModel();
 
+  const titleColor = isDark ? '#FFFFFF' : '#0A2540';
+  const subtitleColor = isDark ? '#9CA3AF' : '#64748B';
+  const seeAllColor = isDark ? '#0AAEEE' : '#05BCAA';
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: isDark ? '#111418' : theme.colors.page }]}>
       <HomeHeader />
 
       <ScrollView
@@ -103,8 +124,8 @@ export function PerfilScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={isLoading}
             onRefresh={recarregar}
-            tintColor={t.colors.tealDark}
-            colors={[t.colors.tealDark]}
+            tintColor={isDark ? '#05BCAA' : theme.colors.tealDark}
+            colors={[isDark ? '#05BCAA' : theme.colors.tealDark]}
           />
         }
       >
@@ -117,35 +138,46 @@ export function PerfilScreen({ navigation }: Props) {
               resizeMode="cover"
             />
           ) : (
-            <View style={styles.avatarFallback}>
-              <Text style={styles.avatarInitial}>
+            <View style={[styles.avatarFallback, { backgroundColor: isDark ? '#0D3331' : theme.colors.activeSurface }]}>
+              <Text style={[styles.avatarInitial, { color: isDark ? '#05BCAA' : theme.colors.tealDark }]}>
                 {primeiroNome.charAt(0).toUpperCase()}
               </Text>
             </View>
           )}
 
           <View style={styles.identityText}>
-            <Text style={styles.greetingTitle}>Olá, {primeiroNome}</Text>
+            <Text style={[styles.greetingTitle, { color: titleColor }]}>Olá, {primeiroNome}</Text>
+            <View style={[styles.badgeGold, { backgroundColor: isDark ? '#382806' : '#FEF3C7' }]}>
+              <Text style={styles.badgeGoldText}>★ Doadora Ouro</Text>
+            </View>
           </View>
         </View>
 
         {/* Linha de Cards de Impacto (KPIs) */}
         <View style={styles.kpiRow}>
           {/* Card 1: Vidas Impactadas */}
-          <View style={styles.kpiWhiteCard}>
+          <View
+            style={[
+              styles.kpiWhiteCard,
+              {
+                backgroundColor: isDark ? '#1A1D24' : theme.colors.surface,
+                borderColor: isDark ? '#242A35' : '#F1F5F9',
+              },
+            ]}
+          >
             <View style={styles.kpiTopRow}>
               <AppIcon name="favorite" size={18} color="#05BCAA" />
               <Text style={styles.kpiTealLabel}>Vidas{'\n'}Impactadas</Text>
             </View>
-            <Text style={styles.kpiBigNumber}>{vidasImpactadas}</Text>
-            <Text style={styles.kpiSubtitle}>Neste ano</Text>
+            <Text style={[styles.kpiBigNumber, { color: titleColor }]}>{vidasImpactadas}</Text>
+            <Text style={[styles.kpiSubtitle, { color: subtitleColor }]}>Neste ano</Text>
           </View>
 
           {/* Card 2: Total Doado */}
-          <View style={styles.kpiBlueCard}>
+          <View style={[styles.kpiBlueCard, { backgroundColor: isDark ? '#0C3866' : '#004380' }]}>
             <View style={styles.kpiTopRow}>
-              <AppIcon name="payments" size={18} color="#05BCAA" />
-              <Text style={styles.kpiWhiteLabel}>Total Doado</Text>
+              <AppIcon name="payments" size={18} color="#38BDF8" />
+              <Text style={[styles.kpiWhiteLabel, { color: '#E0F2FE' }]}>Total Doado</Text>
             </View>
             <Text style={styles.kpiBigNumberWhite}>{totalDoadoFormatado}</Text>
             <Text style={styles.kpiSubtitleWhite}>Histórico completo</Text>
@@ -155,13 +187,13 @@ export function PerfilScreen({ navigation }: Props) {
         {/* Estado de Carregamento / Erro */}
         {isLoading && (
           <View style={styles.centerState}>
-            <ActivityIndicator size="small" color={t.colors.tealDark} />
-            <Text style={styles.loadingText}>Atualizando perfil...</Text>
+            <ActivityIndicator size="small" color={isDark ? '#05BCAA' : theme.colors.tealDark} />
+            <Text style={[styles.loadingText, { color: subtitleColor }]}>Atualizando perfil...</Text>
           </View>
         )}
 
         {error && (
-          <View style={styles.errorBox}>
+          <View style={[styles.errorBox, { backgroundColor: isDark ? '#2D1616' : '#FFF0F0' }]}>
             <Text style={styles.errorText}>{error}</Text>
             <Pressable onPress={recarregar} style={styles.retryBtn}>
               <Text style={styles.retryText}>Tentar novamente</Text>
@@ -171,13 +203,13 @@ export function PerfilScreen({ navigation }: Props) {
 
         {/* Seção ONGs Apoiadas */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionHeading}>ONGs Apoiadas</Text>
+          <Text style={[styles.sectionHeading, { color: titleColor }]}>ONGs Apoiadas</Text>
           <Pressable
             onPress={() => navigation.navigate('Buscar')}
             accessibilityRole="button"
             accessibilityLabel="Ver todas as ONGs"
           >
-            <Text style={styles.seeAllText}>Ver todas</Text>
+            <Text style={[styles.seeAllText, { color: seeAllColor }]}>Ver todas</Text>
           </Pressable>
         </View>
 
@@ -196,41 +228,73 @@ export function PerfilScreen({ navigation }: Props) {
             ))}
           </ScrollView>
         ) : (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyCardText}>
+          <View
+            style={[
+              styles.emptyCard,
+              {
+                backgroundColor: isDark ? '#1A1D24' : theme.colors.surface,
+                borderColor: isDark ? '#242A35' : '#F1F5F9',
+              },
+            ]}
+          >
+            <Text style={[styles.emptyCardText, { color: subtitleColor }]}>
               Você ainda não fez doações para ONGs.
             </Text>
             <Pressable
-              style={styles.exploreBtn}
+              style={[
+                styles.exploreBtn,
+                { backgroundColor: isDark ? '#0D3331' : theme.colors.activeSurface },
+              ]}
               onPress={() => navigation.navigate('Buscar')}
             >
-              <Text style={styles.exploreBtnText}>Explorar Causas</Text>
+              <Text style={[styles.exploreBtnText, { color: isDark ? '#05BCAA' : theme.colors.tealDark }]}>
+                Explorar Causas
+              </Text>
             </Pressable>
           </View>
         )}
 
         {/* Seção Histórico de Doações */}
         <View style={styles.historySectionHeader}>
-          <Text style={styles.sectionHeading}>Histórico de Doações</Text>
+          <Text style={[styles.sectionHeading, { color: titleColor }]}>Histórico de Doações</Text>
         </View>
 
         {doacoesRecentes.length > 0 ? (
           <View style={styles.historyList}>
             {doacoesRecentes.map((d) => (
-              <View key={d.id} style={styles.historyItemCard}>
+              <View
+                key={d.id}
+                style={[
+                  styles.historyItemCard,
+                  {
+                    backgroundColor: isDark ? '#1A1D24' : theme.colors.surface,
+                    borderColor: isDark ? '#242A35' : '#F1F5F9',
+                  },
+                ]}
+              >
                 <View style={styles.historyLeft}>
-                  <View style={styles.historyIconCircle}>
+                  <View
+                    style={[
+                      styles.historyIconCircle,
+                      { backgroundColor: isDark ? '#133835' : '#E6F8F6' },
+                    ]}
+                  >
                     <AppIcon
                       name="volunteer_activism"
                       size={20}
-                      color={t.colors.teal}
+                      color="#05BCAA"
                     />
                   </View>
                   <View style={styles.historyInfo}>
-                    <Text style={styles.historyOngName} numberOfLines={1}>
+                    <Text
+                      style={[styles.historyOngName, { color: titleColor }]}
+                      numberOfLines={1}
+                    >
                       {d.ongNome}
                     </Text>
-                    <Text style={styles.historyDate}>{d.dataFormatada}</Text>
+                    <Text style={[styles.historyDate, { color: subtitleColor }]}>
+                      {d.dataFormatada}
+                    </Text>
                   </View>
                 </View>
 
@@ -242,20 +306,36 @@ export function PerfilScreen({ navigation }: Props) {
             <Pressable
               style={({ pressed }) => [
                 styles.seeAllHistoryBtn,
+                {
+                  borderColor: '#05BCAA',
+                  backgroundColor: isDark ? 'transparent' : 'transparent',
+                },
                 pressed && styles.cardPressed,
               ]}
               onPress={() => navigation.navigate('Doacoes')}
               accessibilityRole="button"
               accessibilityLabel="Ver todo o histórico"
             >
-              <Text style={styles.seeAllHistoryText}>Ver todo o histórico</Text>
+              <Text style={[styles.seeAllHistoryText, { color: isDark ? '#05BCAA' : '#006A60' }]}>
+                Ver todo o histórico
+              </Text>
             </Pressable>
           </View>
         ) : (
-          <View style={styles.emptyHistoryCard}>
-            <AppIcon name="receipt_long" size={32} color={t.colors.muted} />
-            <Text style={styles.emptyHistoryTitle}>Nenhuma doação registrada</Text>
-            <Text style={styles.emptyHistorySubtitle}>
+          <View
+            style={[
+              styles.emptyHistoryCard,
+              {
+                backgroundColor: isDark ? '#1A1D24' : theme.colors.surface,
+                borderColor: isDark ? '#242A35' : '#F1F5F9',
+              },
+            ]}
+          >
+            <AppIcon name="receipt_long" size={32} color={subtitleColor} />
+            <Text style={[styles.emptyHistoryTitle, { color: titleColor }]}>
+              Nenhuma doação registrada
+            </Text>
+            <Text style={[styles.emptyHistorySubtitle, { color: subtitleColor }]}>
               Quando você fizer uma doação para uma campanha ou ONG, ela aparecerá aqui.
             </Text>
           </View>
@@ -268,14 +348,13 @@ export function PerfilScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: t.colors.page,
   },
   body: {
     flex: 1,
   },
   scrollContent: {
-    paddingTop: t.spacing.md,
-    paddingHorizontal: t.spacing.lg,
+    paddingTop: 16,
+    paddingHorizontal: 20,
     paddingBottom: 90,
   },
 
@@ -284,7 +363,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 10,
-    marginBottom: 18,
+    marginBottom: 20,
     gap: 16,
   },
   avatarImage: {
@@ -292,33 +371,43 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     borderWidth: 2,
-    borderColor: t.colors.teal,
+    borderColor: '#05BCAA',
   },
   avatarFallback: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: t.colors.activeSurface,
     borderWidth: 2,
-    borderColor: t.colors.teal,
+    borderColor: '#05BCAA',
     alignItems: 'center',
     justifyContent: 'center',
   },
   avatarInitial: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 24,
     fontWeight: '800',
   },
   identityText: {
     flex: 1,
+    gap: 4,
   },
   greetingTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 24,
     fontWeight: '800',
     letterSpacing: -0.4,
+  },
+  badgeGold: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  badgeGoldText: {
+    color: '#F59E0B',
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    fontWeight: '700',
   },
 
   /* Linha de KPIs */
@@ -329,11 +418,9 @@ const styles = StyleSheet.create({
   },
   kpiWhiteCard: {
     flex: 1,
-    backgroundColor: t.colors.surface,
     borderRadius: 20,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.05,
@@ -342,10 +429,9 @@ const styles = StyleSheet.create({
   },
   kpiBlueCard: {
     flex: 1,
-    backgroundColor: '#004380',
     borderRadius: 20,
     padding: 16,
-    shadowColor: '#004380',
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.18,
     shadowRadius: 10,
@@ -365,13 +451,11 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   kpiWhiteLabel: {
-    color: '#FFFFFF',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '700',
   },
   kpiBigNumber: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 28,
     fontWeight: '800',
@@ -385,7 +469,6 @@ const styles = StyleSheet.create({
     lineHeight: 34,
   },
   kpiSubtitle: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '500',
@@ -414,14 +497,12 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   sectionHeading: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 20,
     fontWeight: '800',
     letterSpacing: -0.3,
   },
   seeAllText: {
-    color: '#05BCAA',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
@@ -434,11 +515,9 @@ const styles = StyleSheet.create({
   },
   ongCard: {
     width: 200,
-    backgroundColor: t.colors.surface,
     borderRadius: 18,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -448,7 +527,6 @@ const styles = StyleSheet.create({
   cardBannerContainer: {
     width: '100%',
     height: 110,
-    backgroundColor: t.colors.subtle,
     position: 'relative',
   },
   cardBannerImage: {
@@ -458,24 +536,16 @@ const styles = StyleSheet.create({
   cardBannerFallback: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#E6F4F1',
   },
   categoryPill: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
   },
   categoryPillText: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 10,
     fontWeight: '800',
@@ -485,7 +555,6 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   cardOngName: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '800',
@@ -498,7 +567,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   progressLabel: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 11,
     fontWeight: '500',
@@ -511,7 +579,6 @@ const styles = StyleSheet.create({
   },
   progressTrack: {
     height: 6,
-    backgroundColor: '#E0F2FE',
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -526,14 +593,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   historyItemCard: {
-    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
@@ -550,7 +615,6 @@ const styles = StyleSheet.create({
     width: 42,
     height: 42,
     borderRadius: 21,
-    backgroundColor: '#E6F8F6',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -558,13 +622,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   historyOngName: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
   },
   historyDate: {
-    color: '#64748B',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 12,
     fontWeight: '500',
@@ -580,14 +642,11 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#05BCAA',
-    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 6,
   },
   seeAllHistoryText: {
-    color: '#05BCAA',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     fontWeight: '700',
@@ -595,17 +654,14 @@ const styles = StyleSheet.create({
 
   /* Empty States */
   emptyCard: {
-    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     gap: 10,
   },
   emptyCardText: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 14,
     textAlign: 'center',
@@ -613,33 +669,27 @@ const styles = StyleSheet.create({
   exploreBtn: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: t.radius.pill,
-    backgroundColor: t.colors.activeSurface,
+    borderRadius: 999,
   },
   exploreBtnText: {
-    color: t.colors.tealDark,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     fontWeight: '700',
   },
   emptyHistoryCard: {
-    backgroundColor: t.colors.surface,
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#F1F5F9',
     gap: 8,
   },
   emptyHistoryTitle: {
-    color: '#0A2540',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     fontWeight: '700',
   },
   emptyHistorySubtitle: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     textAlign: 'center',
@@ -653,19 +703,17 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   loadingText: {
-    color: t.colors.muted,
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
   },
   errorBox: {
     padding: 12,
     borderRadius: 12,
-    backgroundColor: '#FFF0F0',
     alignItems: 'center',
     marginBottom: 12,
   },
   errorText: {
-    color: t.colors.error,
+    color: '#EF4444',
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 13,
     textAlign: 'center',
@@ -675,7 +723,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: t.colors.error,
+    backgroundColor: '#EF4444',
   },
   retryText: {
     color: '#FFFFFF',

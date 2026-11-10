@@ -1,6 +1,15 @@
 import React from 'react';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { KeyboardAvoidingView, Platform, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 import { RootStackParamList } from '../../navigation/types';
 import {
@@ -12,12 +21,13 @@ import {
   PasswordField,
   SocialDivider,
 } from '../components/AuthComponents';
-import { authTheme as t } from '../../theme/authTheme';
 import { useCadastroViewModel } from '../../viewmodel/useCadastroViewModel';
+import { useTheme } from '../../theme/ThemeContext';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Cadastro'>;
 
 export function CadastroScreen({ navigation }: Props) {
+  const { isDark, theme } = useTheme();
   const {
     nome,
     email,
@@ -38,14 +48,20 @@ export function CadastroScreen({ navigation }: Props) {
   const [confirmacaoVisivel, setConfirmacaoVisivel] = React.useState(false);
   const isBusy = loading || loadingGoogle;
 
+  const pageBg = isDark ? '#111418' : theme.colors.canvas;
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: pageBg }]}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.content}>
             <AuthHeader
               title="Crie sua conta e comece a transformar vidas"
               description="Conecte-se com ONGs, doe e faça a diferença hoje mesmo."
+              accentTitle={isDark}
             />
 
             <GoogleAuthButton
@@ -64,7 +80,7 @@ export function CadastroScreen({ navigation }: Props) {
               autoCapitalize="words"
               autoCorrect={false}
               autoComplete="name"
-              placeholder="Seu nome completo"
+              placeholder="Digite seu nome"
               editable={!isBusy}
               returnKeyType="next"
             />
@@ -87,7 +103,7 @@ export function CadastroScreen({ navigation }: Props) {
               onChangeText={setSenha}
               visible={senhaVisivel}
               onToggle={() => setSenhaVisivel((value) => !value)}
-              placeholder="Crie uma senha forte"
+              placeholder="Mínimo 8 caracteres"
               editable={!isBusy}
               autoCapitalize="none"
               autoCorrect={false}
@@ -114,14 +130,18 @@ export function CadastroScreen({ navigation }: Props) {
             <AuthButton title="Criar Conta" loading={loading} onPress={() => void cadastrar()} />
 
             <View style={styles.footer}>
-              <Text style={styles.footerText}>Já tem uma conta?</Text>
+              <Text style={[styles.footerText, { color: isDark ? '#CBD5E1' : theme.colors.text }]}>
+                Já tem uma conta?
+              </Text>
               <Pressable
                 onPress={() => navigation.navigate('Login')}
                 disabled={isBusy}
                 accessibilityRole="button"
                 accessibilityLabel="Entrar"
               >
-                <Text style={styles.link}>Entre aqui</Text>
+                <Text style={[styles.link, { color: isDark ? '#05BCAA' : theme.colors.brand }]}>
+                  Entre aqui
+                </Text>
               </Pressable>
             </View>
           </View>
@@ -132,12 +152,34 @@ export function CadastroScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: t.colors.canvas },
+  safeArea: { flex: 1 },
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: t.spacing.lg, paddingVertical: t.spacing.xl },
-  content: { width: '100%', maxWidth: 390, alignSelf: 'center', paddingHorizontal: 8 },
-  footer: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 5, marginTop: t.spacing.xl },
-  footerText: { color: t.colors.text, fontFamily: 'Plus Jakarta Sans', fontSize: 14 },
-  link: { color: t.colors.brand, fontFamily: 'Plus Jakarta Sans', fontSize: 14, fontWeight: '800' },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    padding: 24,
+    paddingVertical: 32,
+  },
+  content: {
+    width: '100%',
+    maxWidth: 390,
+    alignSelf: 'center',
+    paddingHorizontal: 8,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 28,
+  },
+  footerText: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 14,
+  },
+  link: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 14,
+    fontWeight: '800',
+  },
 });
-

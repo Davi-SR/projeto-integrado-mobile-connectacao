@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 
 import { authTheme as t } from '../../theme/authTheme';
+import { useTheme } from '../../theme/ThemeContext';
 import {
   ChartDataPoint,
   ModoFiltro,
@@ -107,6 +108,16 @@ export function DoacoesChartCard({
   selectedPointIndex,
   onSelectPoint,
 }: Props) {
+  const { isDark, theme } = useTheme();
+  const curveColor = isDark ? '#0AAEEE' : '#FB6407';
+  const cardBg = isDark ? '#1A1D24' : theme.colors.surface;
+  const borderColor = isDark ? '#242A35' : theme.colors.line;
+  const gridLineColor = isDark ? '#242A35' : '#F1F5F9';
+  const labelColor = isDark ? '#9CA3AF' : '#94A3B8';
+  const titleColor = isDark ? '#FFFFFF' : theme.colors.brand;
+  const kpiBg = isDark ? '#111418' : theme.colors.page;
+  const kpiNumColor = isDark ? '#FFFFFF' : theme.colors.ink;
+
   const [chartWidth, setChartWidth] = useState(300);
   const chartHeight = 190;
 
@@ -185,17 +196,23 @@ export function DoacoesChartCard({
       ? `Evolução Anual de Doações`
       : `Doações por Mês em ${anoSelecionado}`;
 
+  const navBg = isDark ? '#262B35' : theme.colors.subtle;
+
   return (
-    <View style={styles.card}>
+    <View style={[styles.card, { backgroundColor: cardBg, borderColor }]}>
       {/* 1. Barra de Modos de Visualização (Por Mês | Por Semana | Por Ano) */}
       <View style={styles.topControlRow}>
-        <View style={styles.modeTabs}>
+        <View style={[styles.modeTabs, { backgroundColor: isDark ? '#262B35' : theme.colors.subtle }]}>
           {modos.map((item) => {
             const active = modoFiltro === item.id;
             return (
               <Pressable
                 key={item.id}
-                style={[styles.modeTab, active && styles.modeTabActive]}
+                style={[
+                  styles.modeTab,
+                  active && styles.modeTabActive,
+                  active && isDark && { backgroundColor: '#0AAEEE' },
+                ]}
                 onPress={() => {
                   onSelectModoFiltro(item.id);
                   onSelectPoint(null);
@@ -203,7 +220,13 @@ export function DoacoesChartCard({
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
               >
-                <Text style={[styles.modeTabText, active && styles.modeTabTextActive]}>
+                <Text
+                  style={[
+                    styles.modeTabText,
+                    { color: isDark ? '#9CA3AF' : theme.colors.muted },
+                    active && styles.modeTabTextActive,
+                  ]}
+                >
                   {item.label}
                 </Text>
               </Pressable>
@@ -213,12 +236,13 @@ export function DoacoesChartCard({
       </View>
 
       {/* 2. Navegador de Data Específico (Ano / Mês / Semestre) com Limites Temporais */}
-      <View style={styles.dateNavigatorRow}>
+      <View style={[styles.dateNavigatorRow, { backgroundColor: navBg, borderColor }]}>
         {modoFiltro === 'semanas' ? (
           <View style={styles.navBlock}>
             <Pressable
               style={({ pressed }) => [
                 styles.navArrow,
+                { backgroundColor: isDark ? '#1A1D24' : theme.colors.surface, borderColor },
                 !canRetrocederMes && styles.navArrowDisabled,
                 pressed && canRetrocederMes && styles.pressed,
               ]}
@@ -226,11 +250,11 @@ export function DoacoesChartCard({
               disabled={!canRetrocederMes}
               accessibilityLabel="Mês anterior"
             >
-              <Text style={[styles.arrowText, !canRetrocederMes && styles.arrowTextDisabled]}>‹</Text>
+              <Text style={[styles.arrowText, { color: isDark ? '#FFFFFF' : t.colors.ink }, !canRetrocederMes && styles.arrowTextDisabled]}>‹</Text>
             </Pressable>
 
             <View style={styles.navLabelWrapper}>
-              <Text style={styles.navCurrentLabel}>
+              <Text style={[styles.navCurrentLabel, { color: isDark ? '#FFFFFF' : t.colors.ink }]}>
                 {MONTH_NAMES_FULL[mesSelecionado]} de {anoSelecionado}
               </Text>
             </View>
@@ -238,6 +262,7 @@ export function DoacoesChartCard({
             <Pressable
               style={({ pressed }) => [
                 styles.navArrow,
+                { backgroundColor: isDark ? '#1A1D24' : theme.colors.surface, borderColor },
                 !canAvancarMes && styles.navArrowDisabled,
                 pressed && canAvancarMes && styles.pressed,
               ]}
@@ -245,7 +270,7 @@ export function DoacoesChartCard({
               disabled={!canAvancarMes}
               accessibilityLabel="Próximo mês"
             >
-              <Text style={[styles.arrowText, !canAvancarMes && styles.arrowTextDisabled]}>›</Text>
+              <Text style={[styles.arrowText, { color: isDark ? '#FFFFFF' : t.colors.ink }, !canAvancarMes && styles.arrowTextDisabled]}>›</Text>
             </Pressable>
           </View>
         ) : modoFiltro === 'meses' ? (
@@ -254,6 +279,7 @@ export function DoacoesChartCard({
               <Pressable
                 style={({ pressed }) => [
                   styles.navArrow,
+                  { backgroundColor: isDark ? '#1A1D24' : theme.colors.surface, borderColor },
                   !canRetrocederAno && styles.navArrowDisabled,
                   pressed && canRetrocederAno && styles.pressed,
                 ]}
@@ -261,14 +287,15 @@ export function DoacoesChartCard({
                 disabled={!canRetrocederAno}
                 accessibilityLabel="Ano anterior"
               >
-                <Text style={[styles.arrowText, !canRetrocederAno && styles.arrowTextDisabled]}>‹</Text>
+                <Text style={[styles.arrowText, { color: isDark ? '#FFFFFF' : t.colors.ink }, !canRetrocederAno && styles.arrowTextDisabled]}>‹</Text>
               </Pressable>
 
-              <Text style={styles.navCurrentLabel}>Ano {anoSelecionado}</Text>
+              <Text style={[styles.navCurrentLabel, { color: isDark ? '#FFFFFF' : t.colors.ink }]}>Ano {anoSelecionado}</Text>
 
               <Pressable
                 style={({ pressed }) => [
                   styles.navArrow,
+                  { backgroundColor: isDark ? '#1A1D24' : theme.colors.surface, borderColor },
                   !canAvancarAno && styles.navArrowDisabled,
                   pressed && canAvancarAno && styles.pressed,
                 ]}
@@ -276,13 +303,17 @@ export function DoacoesChartCard({
                 disabled={!canAvancarAno}
                 accessibilityLabel="Próximo ano"
               >
-                <Text style={[styles.arrowText, !canAvancarAno && styles.arrowTextDisabled]}>›</Text>
+                <Text style={[styles.arrowText, { color: isDark ? '#FFFFFF' : t.colors.ink }, !canAvancarAno && styles.arrowTextDisabled]}>›</Text>
               </Pressable>
             </View>
 
-            <View style={styles.semesterTabs}>
+            <View style={[styles.semesterTabs, { backgroundColor: isDark ? '#1A1D24' : theme.colors.surface, borderColor }]}>
               <Pressable
-                style={[styles.semTab, semestreSelecionado === 1 && styles.semTabActive]}
+                style={[
+                  styles.semTab,
+                  semestreSelecionado === 1 && styles.semTabActive,
+                  semestreSelecionado === 1 && isDark && { backgroundColor: '#05BCAA' },
+                ]}
                 onPress={() => {
                   onSelectSemestre(1);
                   onSelectPoint(null);
@@ -293,7 +324,11 @@ export function DoacoesChartCard({
                 </Text>
               </Pressable>
               <Pressable
-                style={[styles.semTab, semestreSelecionado === 2 && styles.semTabActive]}
+                style={[
+                  styles.semTab,
+                  semestreSelecionado === 2 && styles.semTabActive,
+                  semestreSelecionado === 2 && isDark && { backgroundColor: '#05BCAA' },
+                ]}
                 onPress={() => {
                   onSelectSemestre(2);
                   onSelectPoint(null);
@@ -307,13 +342,13 @@ export function DoacoesChartCard({
           </View>
         ) : (
           <View style={styles.navBlock}>
-            <Text style={styles.navCurrentLabel}>Histórico Anual a partir de 2026</Text>
+            <Text style={[styles.navCurrentLabel, { color: isDark ? '#FFFFFF' : t.colors.ink }]}>Histórico Anual a partir de 2026</Text>
           </View>
         )}
       </View>
 
       {/* 3. Título Contextual */}
-      <Text style={styles.contextTitle}>{tituloContextual}</Text>
+      <Text style={[styles.contextTitle, { color: titleColor }]}>{tituloContextual}</Text>
 
       {/* 4. Área do Gráfico Interativo com Linhas de Grade e Curva Suave */}
       <Animated.View
@@ -329,8 +364,8 @@ export function DoacoesChartCard({
         <View style={styles.gridContainer}>
           {yTicks.map((tick, idx) => (
             <View key={idx} style={styles.gridRow}>
-              <Text style={styles.yAxisLabel}>{tick}</Text>
-              <View style={styles.gridLine} />
+              <Text style={[styles.yAxisLabel, { color: labelColor }]}>{tick}</Text>
+              <View style={[styles.gridLine, { backgroundColor: gridLineColor }]} />
             </View>
           ))}
         </View>
@@ -353,9 +388,9 @@ export function DoacoesChartCard({
             >
               <defs>
                 <linearGradient id="donationCurveGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#FB6407" stopOpacity="0.32" />
-                  <stop offset="60%" stopColor="#FB6407" stopOpacity="0.10" />
-                  <stop offset="100%" stopColor="#FB6407" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor={curveColor} stopOpacity="0.32" />
+                  <stop offset="60%" stopColor={curveColor} stopOpacity="0.10" />
+                  <stop offset="100%" stopColor={curveColor} stopOpacity="0.0" />
                 </linearGradient>
               </defs>
 
@@ -365,7 +400,7 @@ export function DoacoesChartCard({
                 <path
                   d={linePath}
                   fill="none"
-                  stroke="#FB6407"
+                  stroke={curveColor}
                   strokeWidth="3.5"
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -392,6 +427,7 @@ export function DoacoesChartCard({
                       left: p.x,
                       top: p.y,
                       width: length,
+                      backgroundColor: curveColor,
                       transform: [{ rotate: `${angle}deg` }, { translateY: -1.75 }],
                     },
                   ]}
@@ -404,6 +440,7 @@ export function DoacoesChartCard({
             <View
               style={[
                 styles.tooltip,
+                isDark && { backgroundColor: '#262B35' },
                 {
                   left: Math.max(4, Math.min(chartWidth - 120, points[activeIndex].x - 60)),
                   top: Math.max(0, points[activeIndex].y - 42),
@@ -412,7 +449,7 @@ export function DoacoesChartCard({
               pointerEvents="none"
             >
               <Text style={styles.tooltipLabel}>
-                {activePoint.fullLabel}: <Text style={styles.tooltipValue}>{activePoint.formattedValue}</Text>
+                {activePoint.fullLabel}: <Text style={[styles.tooltipValue, { color: curveColor }]}>{activePoint.formattedValue}</Text>
               </Text>
             </View>
           )}
@@ -434,8 +471,20 @@ export function DoacoesChartCard({
                 accessibilityRole="button"
                 accessibilityLabel={`${p.data.label}: ${p.data.formattedValue}`}
               >
-                <View style={[styles.nodeOuter, isSelected && styles.nodeOuterSelected]}>
-                  <View style={[styles.nodeInner, isSelected && styles.nodeInnerSelected]} />
+                <View
+                  style={[
+                    styles.nodeOuter,
+                    { borderColor: curveColor, backgroundColor: isDark ? '#1A1D24' : '#FFFFFF' },
+                    isSelected && styles.nodeOuterSelected,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.nodeInner,
+                      { backgroundColor: curveColor },
+                      isSelected && styles.nodeInnerSelected,
+                    ]}
+                  />
                 </View>
               </Pressable>
             );
@@ -452,7 +501,13 @@ export function DoacoesChartCard({
                 onPress={() => onSelectPoint(idx)}
                 style={styles.xLabelTouch}
               >
-                <Text style={[styles.xAxisText, isSelected && styles.xAxisTextSelected]}>
+                <Text
+                  style={[
+                    styles.xAxisText,
+                    { color: labelColor },
+                    isSelected && { color: curveColor, fontWeight: '800' },
+                  ]}
+                >
                   {d.label}
                 </Text>
               </Pressable>
@@ -462,10 +517,10 @@ export function DoacoesChartCard({
       </Animated.View>
 
       {/* 5. Barra Resumo de KPIs com Tipografia Elegante e Sem Sobreposição */}
-      <View style={styles.kpiContainer}>
+      <View style={[styles.kpiContainer, { backgroundColor: kpiBg, borderColor }]}>
         <View style={styles.kpiBox}>
-          <Text style={styles.kpiCaption}>Total no Período</Text>
-          <Text style={styles.kpiNumber}>
+          <Text style={[styles.kpiCaption, { color: labelColor }]}>Total no Período</Text>
+          <Text style={[styles.kpiNumber, { color: kpiNumColor }]}>
             {kpis.totalPeriodo.toLocaleString('pt-BR', {
               style: 'currency',
               currency: 'BRL',
@@ -474,9 +529,9 @@ export function DoacoesChartCard({
           </Text>
         </View>
 
-        <View style={[styles.kpiBox, styles.kpiBorder]}>
-          <Text style={styles.kpiCaption}>Média / Doação</Text>
-          <Text style={[styles.kpiNumber, { color: t.colors.tealDark }]}>
+        <View style={[styles.kpiBox, styles.kpiBorder, { borderColor }]}>
+          <Text style={[styles.kpiCaption, { color: labelColor }]}>Média / Doação</Text>
+          <Text style={[styles.kpiNumber, { color: isDark ? '#05BCAA' : t.colors.tealDark }]}>
             {kpis.mediaPorDoacao.toLocaleString('pt-BR', {
               style: 'currency',
               currency: 'BRL',
