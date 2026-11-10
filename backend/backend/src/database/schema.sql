@@ -115,3 +115,65 @@ ALTER TABLE "doacoes" ADD CONSTRAINT "campanha_doacao" FOREIGN KEY ("campanha_id
 ALTER TABLE "favoritos" ADD CONSTRAINT "usuario_favorito" FOREIGN KEY ("usuario_id") REFERENCES "usuarios" ("id") DEFERRABLE INITIALLY IMMEDIATE;
 
 ALTER TABLE "favoritos" ADD CONSTRAINT "ong_favorito" FOREIGN KEY ("ong_id") REFERENCES "ongs" ("id") DEFERRABLE INITIALLY IMMEDIATE;
+
+-- ==========================================
+-- CARGA DE DADOS INICIAIS (SEEDS)
+-- ==========================================
+
+-- 1. Categorias
+INSERT INTO categorias (id, nome, descricao) VALUES
+(1, 'Proteção Animal', 'Acolhimento, resgate, castração e cuidados veterinários para animais abandonados.'),
+(2, 'Educação e Inclusão', 'Projetos pedagógicos, reforço escolar, bolsas e formação profissional de jovens.'),
+(3, 'Combate à Fome', 'Distribuição de cestas básicas, cozinhas comunitárias e segurança alimentar.'),
+(4, 'Saúde Comunitária', 'Atendimento médico e psicológico preventivo e apoio a tratamentos complexos.'),
+(5, 'Meio Ambiente', 'Preservação de ecossistemas, reflorestamento urbano e reciclagem consciente.'),
+(6, 'Assistência Social', 'Amparo a famílias em extrema vulnerabilidade, pessoas em situação de rua e idosos.')
+ON CONFLICT (id) DO NOTHING;
+
+-- 2. ONGs
+INSERT INTO ongs (id, categoria_id, nome, cnpj, descricao, email, telefone, cep, logradouro, numero, complemento, bairro, cidade, estado, latitude, longitude, imagem_url, criado_em, atualizado_em) VALUES
+(1, 1, 'Instituto Patinhas Carentes', '12.345.678/0001-90', 'Organização dedicada ao resgate, reabilitação física e adoção responsável de cães e gatos em situação de abandono e maus-tratos.', 'contato@patinhascarentes.org', '1133334444', '01310-100', 'Avenida Paulista', '1578', 'Conjunto 42', 'Bela Vista', 'São Paulo', 'SP', -23.561414, -46.655881, 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&q=80', now(), now()),
+(2, 2, 'Instituto Futuro Brilhante', '23.456.789/0001-01', 'Promove oficinas de programação, robótica, reforço em matemática e leitura para crianças e adolescentes de comunidades periféricas.', 'contato@futurobrilhante.org', '1133335555', '04571-010', 'Avenida Engenheiro Luís Carlos Berrini', '105', 'Andar 3', 'Cidade Monções', 'São Paulo', 'SP', -23.595430, -46.690810, 'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&q=80', now(), now()),
+(3, 3, 'Ação Prato Cheio e Solidário', '34.567.890/0001-12', 'Combate a insegurança alimentar urbana distribuindo marmitas nutritivas diárias e cestas agroecológicas a famílias vulneráveis.', 'contato@pratocheio.org', '1133336666', '03001-000', 'Rua da Mooca', '820', 'Galpão Social', 'Mooca', 'São Paulo', 'SP', -23.553920, -46.618450, 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&q=80', now(), now()),
+(4, 4, 'Fundação Saúde e Vida', '45.678.901/0001-23', 'Oferece atendimento com psicólogos, fisioterapeutas e fonoaudiólogos voluntários para crianças atípicas de baixa renda.', 'contato@saudevida.org', '1133337777', '04038-001', 'Rua Domingos de Morais', '2187', 'Sala 12', 'Vila Mariana', 'São Paulo', 'SP', -23.598210, -46.637890, 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&q=80', now(), now()),
+(5, 5, 'SOS Mata Nativa', '56.789.012/0001-34', 'Recuperação de nascentes, plantio de mudas nativas da Mata Atlântica e educação ambiental para escolas públicas.', 'contato@sosmatanativa.org', '1133338888', '05508-010', 'Avenida Professor Lineu Prestes', '580', 'Bloco Ecoturismo', 'Butantã', 'São Paulo', 'SP', -23.565890, -46.729110, 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&q=80', now(), now())
+ON CONFLICT (id) DO NOTHING;
+
+-- 3. Campanhas
+INSERT INTO campanhas (id, ong_id, titulo, descricao, meta, data_inicio, data_fim, status, imagem_url, criado_em, atualizado_em) VALUES
+(1, 1, 'Reforma do Abrigo dos Animais Resgatados', 'Precisamos expandir a enfermaria e instalar isolamento térmico nos canis para abrigar 40 novos animais resgatados do frio.', 25000.00, '2026-02-01', '2026-12-31', 'ATIVA', 'https://images.unsplash.com/photo-1548767797-d8c844163c4c?w=800&q=80', now(), now()),
+(2, 2, 'Laboratório de Informática Comunitário', 'Arrecadação para compra de 20 computadores seminovos e instalação de internet rápida para aulas de programação gratuitas.', 18000.00, '2026-02-15', '2026-11-30', 'ATIVA', 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&q=80', now(), now()),
+(3, 3, '500 Cestas Básicas para o Inverno', 'Meta de fornecer 500 cestas completas de alimentos não-perecíveis e kits de higiene para famílias da periferia.', 35000.00, '2026-03-01', '2026-08-31', 'ATIVA', 'https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=800&q=80', now(), now())
+ON CONFLICT (id) DO NOTHING;
+
+-- 4. Usuários (Davi Silva Ramos e Davi Silva)
+INSERT INTO usuarios (id, nome, email, senha_hash, telefone, foto_url, criado_em, atualizado_em) VALUES
+(1, 'Davi Silva Ramos', 'davi@gmail.com', '$2a$10$tFVtKq5HqEGcC5Iua1jF/eR9bHIIaBKsLp1Pfmix3Hk6cc6OdwL/.', '61999617819', 'https://lh3.googleusercontent.com/a/ACg8ocJOmwx0oImp-ehDkctB-Wi6Kf8x0S1gfo6hzzDWuEl9QHmvpLyS=s96-c', now(), now()),
+(2, 'Davi Silva', 'manodavi10@gmail.com', '$2a$10$QY55JvoCF3pCreu.QR1L0.LuGEE71KS53wp6qbpWUODlIXPmIj.XK', '61999617819', 'https://lh3.googleusercontent.com/a/ACg8ocJOmwx0oImp-ehDkctB-Wi6Kf8x0S1gfo6hzzDWuEl9QHmvpLyS=s96-c', now(), now())
+ON CONFLICT (id) DO NOTHING;
+
+-- 5. Vínculo de Usuário com ONG (Admin)
+INSERT INTO usuarios_ongs (usuario_id, ong_id, papel, data_vinculo) VALUES
+(1, 1, 'ADMIN', now())
+ON CONFLICT DO NOTHING;
+
+-- 6. Favoritos do Usuário
+INSERT INTO favoritos (usuario_id, ong_id, data_favorito) VALUES
+(1, 1, now()),
+(1, 2, now())
+ON CONFLICT DO NOTHING;
+
+-- 7. Doações de Teste (Histórico com PIX e Cartão)
+INSERT INTO doacoes (id, usuario_id, campanha_id, valor, forma_pagamento, status, data_doacao) VALUES
+(1, 1, 1, 50.00, 'PIX', 'CONCLUIDA', '2026-03-01 10:30:00'),
+(2, 1, 2, 120.00, 'PIX', 'CONCLUIDA', '2026-03-05 14:15:00'),
+(3, 1, 3, 25.00, 'CARTAO', 'CONCLUIDA', '2026-03-08 19:40:00'),
+(4, 1, 1, 80.00, 'PIX', 'PENDENTE', '2026-03-10 17:00:00')
+ON CONFLICT (id) DO NOTHING;
+
+-- 8. Atualizar sequências de auto-incremento (evita conflito de IDs futuros)
+SELECT setval(pg_get_serial_sequence('categorias', 'id'), coalesce(max(id), 1)) FROM categorias;
+SELECT setval(pg_get_serial_sequence('ongs', 'id'), coalesce(max(id), 1)) FROM ongs;
+SELECT setval(pg_get_serial_sequence('campanhas', 'id'), coalesce(max(id), 1)) FROM campanhas;
+SELECT setval(pg_get_serial_sequence('usuarios', 'id'), coalesce(max(id), 1)) FROM usuarios;
+SELECT setval(pg_get_serial_sequence('doacoes', 'id'), coalesce(max(id), 1)) FROM doacoes;
