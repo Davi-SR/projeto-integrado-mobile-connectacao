@@ -652,6 +652,13 @@ Algumas regras importantes:
 # Equipe
 
 Projeto acadêmico desenvolvido pela equipe do **ConectAção**.
+Ana Laura Moreira da Silva
+Arthur Henrique Siqueira Nunes
+Davi Silva Ramos
+Luiza Cristina
+João Pedro Ferreira Trindade
+Pedro Henrique Balbino Oliveira dos Santos
+Guilherme Magalhães
 
 ---
 
