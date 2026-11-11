@@ -1,12 +1,9 @@
 import { getToken } from './authStorage';
 
-const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim();
+const DEFAULT_API_URL = 'https://connectacao-api.onrender.com';
+const configuredApiUrl = process.env.EXPO_PUBLIC_API_URL?.trim() || DEFAULT_API_URL;
 
-if (!configuredApiUrl) {
-  console.warn('EXPO_PUBLIC_API_URL não está configurada. Crie mobile/.env a partir de mobile/.env.example.');
-}
-
-export const API_BASE_URL = configuredApiUrl?.replace(/\/$/, '') ?? '';
+export const API_BASE_URL = configuredApiUrl.replace(/\/$/, '');
 
 export class ApiError extends Error {
   constructor(public readonly status: number, message?: string) {
