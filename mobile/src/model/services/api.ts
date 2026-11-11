@@ -15,6 +15,7 @@ export class ApiError extends Error {
 export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   if (!API_BASE_URL) throw new ApiError(0, 'Configure EXPO_PUBLIC_API_URL antes de acessar a API.');
 
+  const hasBody = Boolean(init?.body);
   let response: Response;
   try {
     const token = await getToken();
@@ -22,6 +23,7 @@ export async function fetchJson<T>(path: string, init?: RequestInit): Promise<T>
       ...init,
       headers: {
         Accept: 'application/json',
+        ...(hasBody ? { 'Content-Type': 'application/json' } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...init?.headers,
       },

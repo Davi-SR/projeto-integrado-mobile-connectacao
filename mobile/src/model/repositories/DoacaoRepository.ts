@@ -7,6 +7,7 @@ export const DoacaoRepository = {
   criar: (payload: { usuarioId: number; campanhaId: number; valor: number; formaPagamento: 'PIX' | 'CARTAO' }) =>
     fetchJson<Doacao>('/doacoes', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     }),
   confirmar: (id: number) =>
