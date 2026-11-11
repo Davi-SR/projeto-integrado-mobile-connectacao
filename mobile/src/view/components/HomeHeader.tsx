@@ -31,7 +31,7 @@ export function HomeHeader() {
       <View style={styles.brandMark} accessibilityLabel="Logo ConectAção">
         <View style={[styles.logoCrop, isDark && styles.logoCropDark]}>
           <Image
-            source={require('../../Assets/Logo.jpg')}
+            source={isDark ? require('../../Assets/Logo-removed.png') : require('../../Assets/Logo.jpg')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -83,8 +83,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   logoCropDark: {
-    backgroundColor: '#FFFFFF',
-    padding: 2,
+    backgroundColor: 'transparent',
+    padding: 0,
   },
   logo: {
     width: 44,

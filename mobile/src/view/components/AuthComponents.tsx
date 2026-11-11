@@ -2,6 +2,7 @@ import React, { forwardRef } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -165,7 +166,7 @@ export function AuthHeader({
     <View style={styles.header}>
       <View style={[styles.logoContainer, isDark && styles.logoContainerDark]}>
         <Image
-          source={require('../../Assets/Logo.jpg')}
+          source={isDark ? require('../../Assets/Logo-removed.png') : require('../../Assets/Logo.jpg')}
           style={styles.logo}
           resizeMode="contain"
           accessibilityLabel="Logo ConectAção"
@@ -338,9 +339,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   logoContainerDark: {
-    backgroundColor: '#FFFFFF',
-    padding: 6,
-    borderRadius: 28,
+    backgroundColor: 'transparent',
+    padding: 0,
+    borderRadius: 0,
   },
   logo: { width: 140, height: 100 },
   title: {
@@ -450,6 +451,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Plus Jakarta Sans',
     fontSize: 15,
     paddingVertical: 0,
+    ...(Platform.OS === 'web' ? ({ outlineStyle: 'none', outlineWidth: 0 } as any) : {}),
   },
   trailingButton: {
     width: 40,
