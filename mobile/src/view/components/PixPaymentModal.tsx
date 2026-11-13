@@ -13,6 +13,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 
 import { useTheme } from '../../theme/ThemeContext';
+import { DoacaoRepository } from '../../model/repositories/DoacaoRepository';
 import { AppIcon } from './HomeIcons';
 
 type Props = {
@@ -82,6 +83,25 @@ export function PixPaymentModal({
     return () => clearInterval(interval);
   }, [visible, modo]);
 
+  // Polling automático a cada 3 segundos para detectar confirmação do pagamento no servidor
+  useEffect(() => {
+    if (!visible || modo !== 'PAGAMENTO' || !doacaoId) return;
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const doacaoAtualizada = await DoacaoRepository.buscarPorId(doacaoId);
+        if (doacaoAtualizada?.status === 'CONCLUIDA') {
+          clearInterval(pollInterval);
+          await onConfirmarPagamento();
+        }
+      } catch {
+        // Ignora falhas transitórias durante a consulta
+      }
+    }, 3000);
+
+    return () => clearInterval(pollInterval);
+  }, [visible, modo, doacaoId, onConfirmarPagamento]);
+
   const minutos = Math.floor(tempoRestanteSegundos / 60)
     .toString()
     .padStart(2, '0');
@@ -103,10 +123,10 @@ export function PixPaymentModal({
   };
 
   const handleConfirmar = async () => {
+    if (processando) return;
     setProcessando(true);
     try {
       await onConfirmarPagamento();
-      setModo('SUCESSO');
     } catch (err: any) {
       setMensagemErro(
         err?.message ||
@@ -222,44 +242,27 @@ export function PixPaymentModal({
                 </Text>
               </View>
 
-              {/* Botões de Ação */}
+              {/* Status de Detecção Automática em Tempo Real */}
               <View style={styles.actionsContainer}>
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.primaryButton,
-                    processando && styles.buttonDisabled,
-                    pressed && !processando && styles.pressed,
+                <View
+                  style={[
+                    styles.waitingBanner,
+                    {
+                      backgroundColor: isDark ? '#0D2826' : '#E6F8F6',
+                      borderColor: isDark ? '#154440' : '#BDEBE5',
+                    },
                   ]}
-                  onPress={handleConfirmar}
-                  disabled={processando}
-                  accessibilityRole="button"
                 >
-                  {processando ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                  ) : (
-                    <>
-                      <AppIcon name="check_circle" size={20} color="#FFFFFF" />
-                      <Text style={styles.primaryButtonText}>Já realizei o pagamento</Text>
-                    </>
-                  )}
-                </Pressable>
-
-                {/* Botão de Demonstração / Aprovação Rápida */}
-                <Pressable
-                  style={({ pressed }) => [
-                    styles.simulateButton,
-                    { borderColor: isDark ? '#0AAEEE' : theme.colors.brand },
-                    pressed && styles.pressed,
-                  ]}
-                  onPress={handleSimular}
-                  disabled={processando}
-                  accessibilityRole="button"
-                >
-                  <AppIcon name="bolt" size={18} color={isDark ? '#0AAEEE' : theme.colors.brand} />
-                  <Text style={[styles.simulateButtonText, { color: isDark ? '#0AAEEE' : theme.colors.brand }]}>
-                    Simular Aprovação Instantânea
-                  </Text>
-                </Pressable>
+                  <ActivityIndicator size="small" color="#05BCAA" />
+                  <View style={styles.waitingTextContainer}>
+                    <Text style={[styles.waitingTitle, { color: isDark ? '#05BCAA' : '#006A60' }]}>
+                      Aguardando confirmação automática...
+                    </Text>
+                    <Text style={[styles.waitingSubtitle, { color: mutedColor }]}>
+                      Assim que o Pix for compensado pelo banco, esta tela fechará automaticamente.
+                    </Text>
+                  </View>
+                </View>
 
                 <Pressable onPress={onFechar} style={styles.cancelLink} accessibilityRole="button">
                   <Text style={[styles.cancelLinkText, { color: mutedColor }]}>Cancelar e fechar</Text>
@@ -526,6 +529,29 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 4,
     width: '100%',
+  },
+  waitingBanner: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 14,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  waitingTextContainer: {
+    flex: 1,
+    gap: 2,
+  },
+  waitingTitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  waitingSubtitle: {
+    fontFamily: 'Plus Jakarta Sans',
+    fontSize: 11,
+    lineHeight: 15,
   },
   primaryButton: {
     backgroundColor: '#05BCAA',

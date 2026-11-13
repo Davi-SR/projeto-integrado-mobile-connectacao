@@ -17,8 +17,10 @@ export function useOngDetailsViewModel(ongId: number) {
   const [categoriaNome, setCategoriaNome] = useState<string | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const carregarOng = useCallback(async () => {
-    setIsLoading(true);
+  const carregarOng = useCallback(async (silencioso = false) => {
+    if (!silencioso) {
+      setIsLoading(true);
+    }
     setError(null);
     try {
       const [ongData, categorias, favoritos, campanhasData] = await Promise.all([
@@ -32,14 +34,18 @@ export function useOngDetailsViewModel(ongId: number) {
       setIsFavorite(favoritos.some((item) => item.id === ongId));
       setCampanhas(campanhasData);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Não foi possível carregar a ONG.');
+      if (!silencioso) {
+        setError(cause instanceof Error ? cause.message : 'Não foi possível carregar a ONG.');
+      }
     } finally {
-      setIsLoading(false);
+      if (!silencioso) {
+        setIsLoading(false);
+      }
     }
   }, [ongId, user?.id]);
 
   useEffect(() => {
-    void carregarOng();
+    void carregarOng(false);
   }, [carregarOng]);
 
   const toggleFavorito = useCallback(async () => {
@@ -67,8 +73,8 @@ export function useOngDetailsViewModel(ongId: number) {
         valor,
         formaPagamento,
       });
-      // Recarrega campanhas e status
-      void carregarOng();
+      // Recarrega campanhas e status silenciosamente sem desmontar a tela
+      void carregarOng(true);
       return doacao;
     },
     [user?.id, carregarOng],
@@ -78,11 +84,11 @@ export function useOngDetailsViewModel(ongId: number) {
     async (doacaoId: number) => {
       try {
         const doacao = await DoacaoRepository.confirmar(doacaoId);
-        void carregarOng();
+        void carregarOng(true);
         return doacao;
       } catch {
         // Fallback local se o backend não tiver o endpoint
-        void carregarOng();
+        void carregarOng(true);
         return null;
       }
     },
@@ -93,10 +99,10 @@ export function useOngDetailsViewModel(ongId: number) {
     async (doacaoId: number) => {
       try {
         const doacao = await DoacaoRepository.cancelar(doacaoId);
-        void carregarOng();
+        void carregarOng(true);
         return doacao;
       } catch {
-        void carregarOng();
+        void carregarOng(true);
         return null;
       }
     },

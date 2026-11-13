@@ -581,7 +581,7 @@ export function OngDetailsScreen({ navigation, route }: Props) {
         </View>
       </Modal>
 
-      {/* Modal Interativo do PIX com QR Code, Copia e Cola, Confirmação e Erro */}
+      {/* Modal Interativo do PIX com QR Code, Copia e Cola e Detecção Automática */}
       <PixPaymentModal
         visible={pixModalVisible}
         valor={pixDados.valor}
@@ -594,11 +594,27 @@ export function OngDetailsScreen({ navigation, route }: Props) {
           if (pixDados.doacaoId) {
             await confirmarDoacao(pixDados.doacaoId);
           }
+          setPixModalVisible(false);
+          setSuccessDados({
+            valor: pixDados.valor,
+            formaPagamento: 'PIX',
+            doacaoId: pixDados.doacaoId,
+            campanhaTitulo: pixDados.campanhaTitulo,
+          });
+          setSuccessModalVisible(true);
         }}
         onSimularAprovacao={async () => {
           if (pixDados.doacaoId) {
             await confirmarDoacao(pixDados.doacaoId);
           }
+          setPixModalVisible(false);
+          setSuccessDados({
+            valor: pixDados.valor,
+            formaPagamento: 'PIX',
+            doacaoId: pixDados.doacaoId,
+            campanhaTitulo: pixDados.campanhaTitulo,
+          });
+          setSuccessModalVisible(true);
         }}
         onFechar={() => setPixModalVisible(false)}
         onDoacaoConcluida={() => {

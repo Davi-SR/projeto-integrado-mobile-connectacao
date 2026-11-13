@@ -62,6 +62,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/webhooks/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/google", "/usuarios").permitAll()
                         .requestMatchers(HttpMethod.GET, "/ongs", "/ongs/**", "/categorias", "/categorias/**", "/campanhas", "/campanhas/**").permitAll()
                         .anyRequest().authenticated())
