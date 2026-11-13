@@ -11,7 +11,8 @@
       "distribution": "internal",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://connectacao-api.onrender.com",
-        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "798466433572-f054innnqk6see68ku3f2ludq58ijis7.apps.googleusercontent.com"
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "798466433572-f054innnqk6see68ku3f2ludq58ijis7.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "798466433572-8unk9b1n2o6u6p7rge91b5svva8u8dak.apps.googleusercontent.com"
       },
       "android": {
         "buildType": "apk"

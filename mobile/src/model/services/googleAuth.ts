@@ -11,7 +11,10 @@ export type GoogleUserProfile = {
   googleId?: string;
 };
 
-const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.trim();
+const GOOGLE_CLIENT_ID =
+  Platform.OS === 'android'
+    ? (process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID?.trim() || process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.trim())
+    : process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID?.trim();
 
 export async function checkGoogleRedirectOnMount(): Promise<GoogleUserProfile | null> {
   if (Platform.OS !== 'web' || typeof window === 'undefined') return null;
